@@ -177,6 +177,7 @@ def run_case(
             obstacle="CIRCLES" if "circles" in method else "HYBRID",
             frozen_heading="frozen" in method,
             circle_count=5 if "circles5" in method else 3,
+            pruned="pruned" in method,
         )
         # "paper6_frozen_sqp" keeps the proposed geometry and only freezes the
         # heading deviation along the contour.

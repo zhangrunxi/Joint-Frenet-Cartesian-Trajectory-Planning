@@ -113,11 +113,12 @@ def hybrid_parts(pose):
     return a, b, 2.3 / 2, circles, np.sqrt(2) * 2.3 / 4
 
 
-def hybrid_constraints(pose, other_pose, margin):
-    """All 25 component pairs, not the manuscript's underspecified pair pruning.
+def hybrid_component_distances(pose, other_pose, margin):
+    """The 25 capsule/circle component-pair distances, in a fixed order.
 
-    Keeping every pair prevents a frozen nearest-pair selection from overlooking
-    a different colliding component during an optimizer step.
+    Order: 1 segment-segment pair, 4 ego corner circles against the opponent
+    segment, 4 opponent corner circles against the ego segment, and 16
+    ego-corner against opponent-corner pairs.
     """
     a, b, r, circles, rc = hybrid_parts(pose)
     c, d, q, others, qc = hybrid_parts(other_pose)
@@ -126,7 +127,27 @@ def hybrid_constraints(pose, other_pose, margin):
     values += [distance(point_segment_squared(p, c, d), rc + q) for p in circles]
     values += [distance(point_segment_squared(p, a, b), qc + r) for p in others]
     values += [distance(ca.sumsqr(p - q), rc + qc) for p in circles for q in others]
-    return ca.vertcat(*values)
+    return values
+
+
+def hybrid_constraints(pose, other_pose, margin):
+    """All 25 component pairs, not the manuscript's underspecified pair pruning.
+
+    Keeping every pair prevents a frozen nearest-pair selection from overlooking
+    a different colliding component during an optimizer step.
+    """
+    return ca.vertcat(*hybrid_component_distances(pose, other_pose, margin))
+
+
+def select_component(values, index):
+    """Pick one component distance by index, keeping the expression smooth in
+    the state and non-smooth only in the index."""
+    selected = values[0]
+    for position in range(1, len(values)):
+        selected = ca.if_else(
+            ca.eq(index, position), values[position], selected
+        )
+    return selected
 
 
 def approximate_road_offsets(x, road, segments=5, frozen_heading=False):
@@ -163,11 +184,15 @@ class PaperModel:
         obstacle="HYBRID",
         frozen_heading=False,
         circle_count=3,
+        pruned=False,
+        n_disc=5,
     ):
         self.road, self.settings = road, settings or Settings()
         self.lifted, self.obstacle = lifted, obstacle
         self.frozen_heading = frozen_heading
         self.circle_count = circle_count
+        self.pruned = pruned
+        self.n_disc = n_disc
         self.nx, self.nu = (9 if lifted else 6), 2
         self.N, self.dt = self.settings.intervals, self.settings.dt
         self.vehicle = bus_vehicle()
@@ -176,8 +201,9 @@ class PaperModel:
     def _symbolic(self):
         opts, vehicle = self.settings, self.vehicle
         x, u = ca.MX.sym("x", self.nx), ca.MX.sym("u", 2)
-        # Three obstacle pose parameters plus moving s/d/v targets.
-        p = ca.MX.sym("p", 6)
+        # Three obstacle pose parameters plus moving s/d/v targets, plus the
+        # pruned component index when the manuscript's pruning strategy is used.
+        p = ca.MX.sym("p", 7 if self.pruned else 6)
         s, n, alpha, v, a, curvature = (x[i] for i in range(6))
         pose_from_frenet = self.road.pose(s, n, alpha)
         pose = x[6:9] if self.lifted else pose_from_frenet
@@ -210,7 +236,18 @@ class PaperModel:
             [ca.jacobian(self.step(x, u), x), ca.jacobian(self.step(x, u), u)],
         )
         if self.obstacle == "HYBRID":
-            obs = hybrid_constraints(pose, p[:3], opts.obstacle_margin)
+            if self.pruned:
+                # Manuscript Section 5.2: keep only the corrected nearest pair.
+                obs = ca.vertcat(
+                    select_component(
+                        hybrid_component_distances(
+                            pose, p[:3], opts.obstacle_margin
+                        ),
+                        p[6],
+                    )
+                )
+            else:
+                obs = hybrid_constraints(pose, p[:3], opts.obstacle_margin)
         elif self.obstacle == "ELIPSE":
             obs = ellipse_constraint(
                 gym_pose(pose), gym_pose(p[:3]), vehicle, vehicle, opts.obstacle_margin
@@ -228,7 +265,10 @@ class PaperModel:
         else:
             raise ValueError(self.obstacle)
         offsets = approximate_road_offsets(
-            x, self.road, frozen_heading=self.frozen_heading
+            x,
+            self.road,
+            segments=self.n_disc,
+            frozen_heading=self.frozen_heading,
         )
         alat = v**2 * curvature
         jlat = 2 * v * a * curvature + v**2 * u[1]
@@ -321,17 +361,19 @@ class PaperModel:
 
     def parameters(self, time, initial_s, obstacle_start=35.0, obstacle_speed=8.0):
         times = time + np.arange(self.N + 1) * self.dt
-        return np.array(
-            [
-                np.r_[
-                    self.road.numeric_pose([obstacle_start + obstacle_speed * t, 0, 0]),
-                    initial_s + k * self.dt * self.settings.speed,
-                    self.settings.lateral,
-                    self.settings.speed,
-                ]
-                for k, t in enumerate(times)
+        rows = [
+            np.r_[
+                self.road.numeric_pose([obstacle_start + obstacle_speed * t, 0, 0]),
+                initial_s + k * self.dt * self.settings.speed,
+                self.settings.lateral,
+                self.settings.speed,
             ]
-        )
+            for k, t in enumerate(times)
+        ]
+        if self.pruned:
+            # The index column is filled in by the planner before each solve.
+            rows = [np.r_[row, 0.0] for row in rows]
+        return np.array(rows)
 
     def violation(self, X, U, P, initial):
         if not np.isfinite(X).all() or not np.isfinite(U).all():
@@ -414,6 +456,42 @@ class AcadosPaperPlanner:
         self.build_seconds = perf_counter() - start
         self.X, self.U = None, None
 
+    def pruning_indices(self, parameters):
+        """Component index selected at each predicted step.
+
+        The manuscript selects, per step, the pair of components with the
+        smallest distance and replaces redundant sub-capsule members by corner
+        circles. Here the selection uses the previous solution's predicted ego
+        poses, which is the information available at planning time; the selected
+        index is held constant over one solve, so the constraint is non-smooth in
+        the index exactly as in the manuscript's description.
+        """
+        m = self.model
+        poses = (
+            self.X[:, :3]
+            if self.X is not None
+            else np.array(
+                [
+                    np.asarray(
+                        m.road.numeric_pose(
+                            [initial_s + k * m.dt * m.settings.speed, m.settings.lateral, 0.0]
+                        )
+                    ).ravel()
+                    for k in range(m.N + 1)
+                ]
+            )
+        )
+        indices = []
+        for k in range(m.N + 1):
+            ego = m.road.pose(poses[k, 0], poses[k, 1], poses[k, 2])
+            values = []
+            for value in hybrid_component_distances(
+                ego, parameters[k][:3], m.settings.obstacle_margin
+            ):
+                values.append(float(ca.evalf(value)))
+            indices.append(int(np.argmin(values)))
+        return indices
+
     def solve(self, initial, parameters):
         m = self.model
         start = perf_counter()
@@ -426,6 +504,14 @@ class AcadosPaperPlanner:
                 if k < m.N:
                     self.solver.set(k, "u", np.zeros(2))
                     state = np.asarray(m.step(state, [0, 0])).ravel()
+        if m.pruned:
+            indices = self.pruning_indices(parameters)
+            parameters = np.array(
+                [
+                    np.r_[row[:6], index]
+                    for row, index in zip(parameters, indices)
+                ]
+            )
         for k in range(m.N + 1):
             self.solver.set(k, "p", parameters[k])
         status = int(self.solver.solve())

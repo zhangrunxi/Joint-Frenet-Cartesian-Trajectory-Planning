@@ -75,6 +75,7 @@ POINT_METHODS = [
 ABLATION_METHODS = [
     "paper6_frozen_sqp",
     "paper6_circles5_sqp",
+    "paper6_pruned_sqp",
 ]
 
 
