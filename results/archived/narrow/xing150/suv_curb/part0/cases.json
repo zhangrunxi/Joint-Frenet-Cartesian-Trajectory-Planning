@@ -1,0 +1,322 @@
+[
+  {
+    "case_id": 0,
+    "half_width": 1.75,
+    "lateral": -0.6000000000000001,
+    "kappa": 0.125,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 1,
+    "half_width": 1.75,
+    "lateral": -0.6000000000000001,
+    "kappa": 0.125,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 2,
+    "half_width": 1.75,
+    "lateral": -0.6000000000000001,
+    "kappa": 0.08333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 3,
+    "half_width": 1.75,
+    "lateral": -0.6000000000000001,
+    "kappa": 0.08333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 4,
+    "half_width": 1.75,
+    "lateral": -0.6000000000000001,
+    "kappa": 0.05,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 5,
+    "half_width": 1.75,
+    "lateral": -0.6000000000000001,
+    "kappa": 0.05,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 6,
+    "half_width": 1.75,
+    "lateral": -0.6000000000000001,
+    "kappa": 0.03333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 7,
+    "half_width": 1.75,
+    "lateral": -0.6000000000000001,
+    "kappa": 0.03333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 8,
+    "half_width": 1.75,
+    "lateral": 0.6000000000000001,
+    "kappa": -0.125,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 9,
+    "half_width": 1.75,
+    "lateral": 0.6000000000000001,
+    "kappa": -0.125,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 10,
+    "half_width": 1.75,
+    "lateral": 0.6000000000000001,
+    "kappa": -0.08333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 11,
+    "half_width": 1.75,
+    "lateral": 0.6000000000000001,
+    "kappa": -0.08333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 12,
+    "half_width": 1.75,
+    "lateral": 0.6000000000000001,
+    "kappa": -0.05,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 13,
+    "half_width": 1.75,
+    "lateral": 0.6000000000000001,
+    "kappa": -0.05,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 14,
+    "half_width": 1.75,
+    "lateral": 0.6000000000000001,
+    "kappa": -0.03333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 15,
+    "half_width": 1.75,
+    "lateral": 0.6000000000000001,
+    "kappa": -0.03333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 16,
+    "half_width": 2.5,
+    "lateral": -1.35,
+    "kappa": 0.125,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 17,
+    "half_width": 2.5,
+    "lateral": -1.35,
+    "kappa": 0.125,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 18,
+    "half_width": 2.5,
+    "lateral": -1.35,
+    "kappa": 0.08333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 19,
+    "half_width": 2.5,
+    "lateral": -1.35,
+    "kappa": 0.08333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 20,
+    "half_width": 2.5,
+    "lateral": -1.35,
+    "kappa": 0.05,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 21,
+    "half_width": 2.5,
+    "lateral": -1.35,
+    "kappa": 0.05,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 22,
+    "half_width": 2.5,
+    "lateral": -1.35,
+    "kappa": 0.03333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 23,
+    "half_width": 2.5,
+    "lateral": -1.35,
+    "kappa": 0.03333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": -30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 24,
+    "half_width": 2.5,
+    "lateral": 1.35,
+    "kappa": -0.125,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 25,
+    "half_width": 2.5,
+    "lateral": 1.35,
+    "kappa": -0.125,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 26,
+    "half_width": 2.5,
+    "lateral": 1.35,
+    "kappa": -0.08333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 27,
+    "half_width": 2.5,
+    "lateral": 1.35,
+    "kappa": -0.08333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 28,
+    "half_width": 2.5,
+    "lateral": 1.35,
+    "kappa": -0.05,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 29,
+    "half_width": 2.5,
+    "lateral": 1.35,
+    "kappa": -0.05,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 6.0
+  },
+  {
+    "case_id": 30,
+    "half_width": 2.5,
+    "lateral": 1.35,
+    "kappa": -0.03333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 4.0
+  },
+  {
+    "case_id": 31,
+    "half_width": 2.5,
+    "lateral": 1.35,
+    "kappa": -0.03333333333333333,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 0.0,
+    "obstacle_lateral": 30.0,
+    "initial_speed": 6.0
+  }
+]

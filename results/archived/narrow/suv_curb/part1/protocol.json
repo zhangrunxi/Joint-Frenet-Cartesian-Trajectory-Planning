@@ -1,0 +1,26 @@
+{
+  "task": "curb",
+  "vehicle": "suv",
+  "half_width_m": [
+    1.75,
+    2.5
+  ],
+  "kappa_per_m": [
+    0.125,
+    0.08333333333333333,
+    0.05,
+    0.03333333333333333,
+    -0.125,
+    -0.08333333333333333,
+    -0.05,
+    -0.03333333333333333
+  ],
+  "initial_speed_mps": [
+    4.0,
+    6.0
+  ],
+  "obstacle_lateral_m": 30.0,
+  "obstacle_start_m": 30.0,
+  "steps": 120,
+  "xing_max_iterations": 50
+}

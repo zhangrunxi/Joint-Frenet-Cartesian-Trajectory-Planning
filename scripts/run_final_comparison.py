@@ -22,6 +22,7 @@ from run_paper_comparison import METHODS, finite_json, run_case
 
 from paper_comparison.evaluation import evaluate_sample
 from paper_comparison.model import Settings
+from paper_comparison.vehicle import GEOMETRY
 from paper_comparison.xing2022 import XingOptions, XingPlanner
 from reiter2023 import CircularRoad
 
@@ -141,7 +142,7 @@ def run_xing(
             t = (j + (sub + 1) / 5) * settings.dt
             evaluation = evaluate_sample(
                 planner.canonical(state),
-                road.numeric_pose([obstacle_s(t), 0, 0]),
+                road.numeric_pose([obstacle_s(t), settings.obstacle_lateral, 0]),
                 road.kappa,
                 half_width,
             )
@@ -193,7 +194,7 @@ def run_xing(
         "progress_m": float(state[4]),
         "final_relative_s_m": float(state[4] - obstacle_s(len(controls) * settings.dt)),
         "passed_obstacle": bool(
-            state[4] > obstacle_s(len(controls) * settings.dt) + 6.5
+            state[4] > obstacle_s(len(controls) * settings.dt) + GEOMETRY.length
         ),
         "rms_lateral_acc_mps2": rms(alats),
         "max_abs_lateral_acceleration_mps2": max(interval_alats, default=0),

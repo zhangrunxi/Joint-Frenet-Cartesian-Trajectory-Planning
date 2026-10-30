@@ -29,6 +29,7 @@ from paper_comparison.model import (
     bus_vehicle,
     gym_pose,
 )
+from paper_comparison.vehicle import GEOMETRY
 from reiter2023 import CircularRoad, PlannerOptions, VehiclePlannerAcados20222
 
 
@@ -67,7 +68,7 @@ class BusReiter(VehiclePlannerAcados20222):
             )
         # Existing builder assigns >=0 to all entries after the first two.
         if self.road_bound == "point":
-            offsets, width = self.x[1], self.road.half_width - 0.2 - 1.15
+            offsets, width = self.x[1], self.road.half_width - 0.2 - GEOMETRY.half_width
         else:
             offsets = approximate_road_offsets(self.x, self.road)
             width = self.road.half_width - 0.2
@@ -163,7 +164,7 @@ def run_case(
         cls = BusReiterPoint if method.endswith("_point") else BusReiter
         planner = cls(bus, road, options, [bus])
         state = np.array(
-            [0, 0, 0, initial_speed, np.arctan(4.32 * road.kappa)]
+            [0, 0, 0, initial_speed, np.arctan(GEOMETRY.wheelbase * road.kappa)]
         )
         nx = planner.nx
     elif is_proxy:
@@ -210,7 +211,7 @@ def run_case(
         if is_reiter:
             times = time + np.arange(planner.n_nodes) * settings.dt
             predictions = np.array(
-                [[road.numeric_pose([obstacle_s(t), 0, 0]) for t in times]]
+                [[road.numeric_pose([obstacle_s(t), settings.obstacle_lateral, 0]) for t in times]]
             )
             whole_start = perf_counter()
             planner.set_obstacle_predictions(predictions)
@@ -253,9 +254,9 @@ def run_case(
         if is_reiter or is_proxy:
             acc, curvature = (
                 control[0] / bus.mass if is_reiter else control[0],
-                np.tan(state[4]) / 4.32,
+                np.tan(state[4]) / GEOMETRY.wheelbase,
             )
-            kr = (1 + np.tan(state[4]) ** 2) / 4.32 * control[1]
+            kr = (1 + np.tan(state[4]) ** 2) / GEOMETRY.wheelbase * control[1]
             steer_rate = control[1]
             jerk = (acc - acc_values[-1]) / settings.dt if acc_values else 0.0
             augmented = (
@@ -264,7 +265,7 @@ def run_case(
         else:
             acc, curvature = state[4], state[5]
             kr, jerk = control[1], control[0]
-            steer_rate = 4.32 * kr / (1 + (4.32 * curvature) ** 2)
+            steer_rate = GEOMETRY.wheelbase * kr / (1 + (GEOMETRY.wheelbase * curvature) ** 2)
             augmented = state.copy()
         alat_values.append(state[3] ** 2 * curvature)
         jlat_values.append(2 * state[3] * acc * curvature + state[3] ** 2 * kr)
@@ -279,7 +280,7 @@ def run_case(
             t = time + (j + 1) * settings.dt / 5
             sample = evaluate_sample(
                 augmented,
-                road.numeric_pose([obstacle_s(t), 0, 0]),
+                road.numeric_pose([obstacle_s(t), settings.obstacle_lateral, 0]),
                 road.kappa,
                 road.half_width,
             )
@@ -337,7 +338,7 @@ def run_case(
         "progress_m": float(state[0]),
         "final_relative_s_m": float(state[0] - obstacle_s(len(controls) * settings.dt)),
         "passed_obstacle": bool(
-            state[0] > obstacle_s(len(controls) * settings.dt) + 6.5
+            state[0] > obstacle_s(len(controls) * settings.dt) + GEOMETRY.length
         ),
         "rms_lateral_acc_mps2": rms(alat_values),
         "rms_lateral_jerk_mps3": rms(jlat_values),
@@ -401,7 +402,7 @@ def main():
     p.add_argument("--output", type=Path, required=True)
     args = p.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
-    if args.steps < 1 or args.half_width <= 1.35:
+    if args.steps < 1 or args.half_width <= GEOMETRY.half_width + 0.2:
         p.error("positive steps and sufficient road width required")
     settings = replace(Settings(), lateral=args.lateral)
     results = []

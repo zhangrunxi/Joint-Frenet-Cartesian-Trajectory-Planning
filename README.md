@@ -29,8 +29,10 @@ The claims this code is meant to support are deliberately narrow:
   bus-contour road bounds on curved roads.
 
 It does **not** establish that the proposed method is universally better than
-joint-frame planners. In the scenarios we measured, a reconstructed Xing
-keep-left corridor also completes the overtake.
+joint-frame planners. On wide roads every method does well; the comparisons
+that separate them are the narrow-road tasks in `results/archived/narrow/`,
+and even there a reconstructed Xing corridor passes one curved gap that the
+proposed geometry does not.
 
 ## Layout
 
@@ -118,6 +120,8 @@ clearance at the saved states. It does not re-time the solvers.
 | Ablation of the proposed method on the randomized set | `scripts/run_random_benchmark.py` | `results/archived/random_benchmark_ablation/` |
 | Six- versus nine-state overhead, serial timing on the randomized set | `scripts/run_random_benchmark.py` | `results/archived/random_benchmark_nine_state_serial/` |
 | Rank correlation between solve time and completion rate | `scripts/measure_rank_correlation.py` | `results/archived/rank_correlation/` |
+| Narrow-road gap and curb tasks, bus and SUV | `scripts/run_random_benchmark.py --task gap\|curb` | `results/archived/narrow/` |
+| Minimum passable gap of each obstacle geometry | `scripts/measure_minimum_gap.py` | printed; quoted in `results/archived/narrow/README.md` |
 | Contour accuracy against the discretization count | `scripts/run_ndisc_sweep.py` | `results/archived/contour_accuracy/` |
 | Road-width sensitivity | `scripts/run_width_sweep.sh` | `results/archived/final_width_comparison_plots_v2/` |
 | Pruning procedure figure | `scripts/plot_pruning_figure.py` | `results/archived/geometry_conservatism/pruning_procedure.png` |
@@ -181,7 +185,11 @@ These are stated in full in `docs/AUDIT_FINDINGS.md` and
 
 - The road-boundary projection in the proposed model is an approximation. In
   one archived width-sweep case the physical clearance was 0.194 m against a
-  nominal 0.2 m margin. That shortfall is disclosed, not removed.
+  nominal 0.2 m margin. That shortfall is disclosed, not removed. On the
+  narrow curb task the same approximation takes up to 0.075 m of the margin
+  (bus) without striking the curb.
+- The proposed hybrid geometry is more conservative than the exact rectangle:
+  its minimum passable gap is 3.18 m against 2.70 m for the bus.
 - The CiLQR implementation accepts on feasibility; it does not certify
   stationarity.
 - Clearance is sampled at 0.02 s. This is not a continuous-time safety proof.

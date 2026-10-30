@@ -27,6 +27,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import numpy as np
 
 from paper_comparison.model import Settings
+from paper_comparison.vehicle import GEOMETRY
 from run_paper_comparison import run_case
 from run_final_comparison import run_xing
 
@@ -83,9 +84,9 @@ ABLATION_METHODS = [
 ]
 
 
-# The bus half width is 1.15 m and the road margin is 0.2 m, so the rear-axle
-# reference point may sit at most half_width - 1.35 m from the centre line.
-BODY_HALF_WIDTH = 1.15
+# The rear-axle reference point may sit at most half_width - (body half width
+# + road margin) from the centre line; for the bus that is half_width - 1.35 m.
+BODY_HALF_WIDTH = GEOMETRY.half_width
 ROAD_MARGIN = 0.20
 # The lateral acceleration limit of Eq. (34f) is 5 m/s^2. A case is only
 # generated when the initial state satisfies it with a margin, so that an
@@ -121,7 +122,11 @@ def build_cases(protocol):
             lateral = float(rng.choice(protocol["lateral_offset_m"]))
         # Keep the reference point inside the drivable corridor.
         lateral = float(
-            np.clip(lateral, -half_width + 1.35, half_width - 1.35)
+            np.clip(
+                lateral,
+                -half_width + BODY_HALF_WIDTH + ROAD_MARGIN,
+                half_width - BODY_HALF_WIDTH - ROAD_MARGIN,
+            )
         )
         kappa = float(rng.choice(protocol["kappa_per_m"]))
         obstacle_start = float(rng.choice(protocol["obstacle_start_m"]))
@@ -149,12 +154,142 @@ def build_cases(protocol):
     return cases
 
 
-def run_method(output, method, case, steps, intervals):
+# Narrow-road grids of NARROW_BENCHMARK_PROTOCOL.md. They are full grids, not
+# random draws, so that every gap and every curvature is covered. The grids
+# are scaled to the vehicle: an SUV drives narrower lanes and tighter turns.
+GAP_PROTOCOLS = {
+    "bus": {
+        "gap_m": [2.8, 3.0, 3.3, 3.6, 4.0, 4.5, 5.0, 5.5, 6.0],
+        "kappa_per_m": [0.0, 1 / 60, 1 / 35, -1 / 40],
+        "initial_speed_mps": [8.0, 11.0],
+    },
+    "suv": {
+        "gap_m": [2.4, 2.6, 2.8, 3.0, 3.3, 3.6, 4.0, 4.4, 4.8],
+        "kappa_per_m": [0.0, 1 / 30, 1 / 20, -1 / 25],
+        "initial_speed_mps": [6.0, 9.0],
+    },
+}
+GAP_PROTOCOL = {
+    "task": "gap",
+    "vehicle": GEOMETRY.name,
+    **GAP_PROTOCOLS[GEOMETRY.name],
+    # A stopped vehicle of the same type 0.3 m from the right curb leaves the
+    # gap on the left; the lateral target is the middle of that gap.
+    "curb_clearance_m": 0.3,
+    "obstacle_start_m": 30.0,
+    "steps": 120,
+}
+
+GAP_METHODS = [
+    "paper6_hybrid_sqp",
+    "paper6_capsule_sqp",
+    "paper6_circles_sqp",
+    "paper6_circles5_sqp",
+    "reiter_direct_ellipse",
+    "reiter_lifted_ellipse",
+    "reiter_direct_circles",
+    "reiter_lifted_circles",
+    "xing_joint_corridor",
+]
+
+CURB_PROTOCOLS = {
+    "bus": {
+        "half_width_m": [2.5, 3.5],
+        "kappa_per_m": [1 / 15, 1 / 20, 1 / 30, 1 / 40, -1 / 15, -1 / 20, -1 / 30, -1 / 40],
+        "initial_speed_mps": [5.0, 8.0],
+    },
+    "suv": {
+        "half_width_m": [1.75, 2.5],
+        "kappa_per_m": [1 / 8, 1 / 12, 1 / 20, 1 / 30, -1 / 8, -1 / 12, -1 / 20, -1 / 30],
+        "initial_speed_mps": [4.0, 6.0],
+    },
+}
+CURB_PROTOCOL = {
+    "task": "curb",
+    "vehicle": GEOMETRY.name,
+    **CURB_PROTOCOLS[GEOMETRY.name],
+    # The obstacle is parked 30 m outside the road and never interacts.
+    "obstacle_lateral_m": 30.0,
+    "obstacle_start_m": 30.0,
+    "steps": 120,
+}
+
+CURB_METHODS = [
+    "paper6_hybrid_sqp",
+    "paper6_frozen_sqp",
+    "reiter_direct_ellipse",
+    "reiter_direct_ellipse_point",
+    "xing_joint_corridor",
+    "xing_joint_corridor_point",
+]
+
+
+def lateral_feasible(speed, kappa):
+    return speed**2 * abs(kappa) <= MAX_LATERAL_ACCELERATION - LATERAL_ACCELERATION_MARGIN
+
+
+def build_gap_cases(protocol):
+    cases = []
+    for gap in protocol["gap_m"]:
+        half_width = (gap + 2 * BODY_HALF_WIDTH + protocol["curb_clearance_m"]) / 2
+        obstacle_lateral = -half_width + protocol["curb_clearance_m"] + BODY_HALF_WIDTH
+        lateral = round(
+            min(
+                protocol["curb_clearance_m"] / 2 + BODY_HALF_WIDTH,
+                half_width - BODY_HALF_WIDTH - ROAD_MARGIN,
+            ),
+            9,
+        )
+        for kappa in protocol["kappa_per_m"]:
+            for speed in protocol["initial_speed_mps"]:
+                if not lateral_feasible(speed, kappa):
+                    continue
+                cases.append(
+                    {
+                        "case_id": len(cases),
+                        "gap": gap,
+                        "half_width": half_width,
+                        "lateral": lateral,
+                        "kappa": kappa,
+                        "obstacle_start": protocol["obstacle_start_m"],
+                        "obstacle_speed": 0.0,
+                        "obstacle_lateral": obstacle_lateral,
+                        "initial_speed": speed,
+                    }
+                )
+    return cases
+
+
+def build_curb_cases(protocol):
+    cases = []
+    for half_width in protocol["half_width_m"]:
+        for kappa in protocol["kappa_per_m"]:
+            outer = float(-np.sign(kappa))
+            for speed in protocol["initial_speed_mps"]:
+                if not lateral_feasible(speed, kappa):
+                    continue
+                cases.append(
+                    {
+                        "case_id": len(cases),
+                        "half_width": half_width,
+                        "lateral": outer * (half_width - BODY_HALF_WIDTH - ROAD_MARGIN),
+                        "kappa": kappa,
+                        "obstacle_start": protocol["obstacle_start_m"],
+                        "obstacle_speed": 0.0,
+                        "obstacle_lateral": outer * protocol["obstacle_lateral_m"],
+                        "initial_speed": speed,
+                    }
+                )
+    return cases
+
+
+def run_method(output, method, case, steps, intervals, xing_iterations=50):
     settings = replace(
         Settings(),
         lateral=case["lateral"],
         intervals=intervals,
         speed=case["initial_speed"],
+        obstacle_lateral=case.get("obstacle_lateral", 0.0),
     )
     scenario = "curve" if abs(case["kappa"]) > 1e-9 else "straight"
     name = f"case{case['case_id']:03d}_{method}_{scenario}"
@@ -166,7 +301,7 @@ def run_method(output, method, case, steps, intervals):
             steps,
             settings,
             case["half_width"],
-            50,
+            xing_iterations,
             case["obstacle_start"],
             case["obstacle_speed"],
             case["kappa"],
@@ -192,23 +327,33 @@ def main():
     parser.add_argument("--steps", type=int, default=RANDOM_PROTOCOL["steps"])
     parser.add_argument("--intervals", type=int, default=40)
     parser.add_argument("--cases", type=int, default=RANDOM_PROTOCOL["cases"])
+    parser.add_argument("--methods", nargs="+", default=None)
     parser.add_argument(
-        "--methods",
-        nargs="+",
-        default=METHODS + POINT_METHODS + ABLATION_METHODS,
-    )
-    parser.add_argument(
-        "--task", choices=["general", "overtake"], default=RANDOM_PROTOCOL["task"]
+        "--task",
+        choices=["general", "overtake", "gap", "curb"],
+        default=RANDOM_PROTOCOL["task"],
     )
     parser.add_argument("--case-start", type=int, default=0)
+    # The SQP iteration cap of the Xing reconstruction. acados runs up to 150.
+    parser.add_argument("--xing-max-iterations", type=int, default=50)
     parser.add_argument("--case-stop", type=int, default=None)
     args = parser.parse_args()
 
-    protocol = dict(RANDOM_PROTOCOL)
-    protocol["cases"] = args.cases
+    if args.task == "gap":
+        protocol, cases, methods = dict(GAP_PROTOCOL), None, GAP_METHODS
+        cases = build_gap_cases(protocol)
+    elif args.task == "curb":
+        protocol, methods = dict(CURB_PROTOCOL), CURB_METHODS
+        cases = build_curb_cases(protocol)
+    else:
+        protocol = dict(RANDOM_PROTOCOL)
+        protocol["cases"] = args.cases
+        protocol["task"] = args.task
+        methods = METHODS + POINT_METHODS + ABLATION_METHODS
+        cases = build_cases(protocol)
     protocol["steps"] = args.steps
-    protocol["task"] = args.task
-    cases = build_cases(protocol)
+    protocol["xing_max_iterations"] = args.xing_max_iterations
+    args.methods = args.methods or methods
     if args.output.exists() and any(args.output.iterdir()):
         raise FileExistsError("Use an empty new output directory")
     args.output.mkdir(parents=True, exist_ok=True)
@@ -225,7 +370,12 @@ def main():
             started = perf_counter()
             try:
                 result = run_method(
-                    args.output, method, case, args.steps, args.intervals
+                    args.output,
+                    method,
+                    case,
+                    args.steps,
+                    args.intervals,
+                    args.xing_max_iterations,
                 )
                 row = {
                     key: value

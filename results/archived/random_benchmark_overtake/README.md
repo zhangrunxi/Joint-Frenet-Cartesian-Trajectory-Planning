@@ -4,10 +4,34 @@ This directory holds the run of the randomized scenario set on the
 narrow-corridor overtaking task. The protocol was frozen before the run; see
 `docs/RANDOM_BENCHMARK_PROTOCOL.md` for the scenario definition and the seed.
 
-## What the numbers say
+## Correction: completion is not passing
 
-**This result is not favourable to the method of the manuscript**, and the
-archive is published so that this is checkable:
+An earlier version of this README ranked the methods by `success`. On this
+task that is the wrong metric: `success` only means that the 120 steps ran
+without collision or road exit, so a run that followed the obstacle the whole
+way counts as a success. The task asks the planner to pass. Scored by
+`success and passed_obstacle`, the methods rank as follows:
+
+| Method | Passed, all (40) | Passed, half width 4.6 m (15) | Passed, half width 8.5 m (25) |
+| --- | ---: | ---: | ---: |
+| This paper, AL-CiLQR | 16/40 | 4/15 | 12/25 |
+| This paper, capsule condition | 15/40 | 7/15 | 8/25 |
+| This paper, six states (SQP) | 10/40 | 4/15 | 6/25 |
+| Reiter direct / lifted, ellipse | 11/40 | **0/15** | 11/25 |
+| Reiter direct / lifted, three circles | 9/40 | **0/15** | 9/25 |
+| This paper, three circles | 6/40 | **0/15** | 6/25 |
+| Xing joint, keep-left corridor | 8/40 | 2/15 | 6/25 |
+| Xing joint, always yield | 0/40 | 0/15 | 0/25 |
+
+On the narrower road, the obstacle on the centre line leaves a 3.45 m gap. That
+is below the minimum gap of the ellipse (5.47 m) and of the three covering
+circles (3.65 m), and above that of the proposed geometry (3.18 m); see
+`scripts/measure_minimum_gap.py`. On the wider road, the Reiter ellipse passes
+more often than the proposed SQP formulation. The narrow-road question is
+studied directly, with a gap sweep, in `../narrow/`.
+
+The table below is the original `success` ranking. It is kept so that the
+correction can be checked; **it does not measure passing**.
 
 | Method | Completion (40 cases) | Failure mode |
 | --- | ---: | --- |

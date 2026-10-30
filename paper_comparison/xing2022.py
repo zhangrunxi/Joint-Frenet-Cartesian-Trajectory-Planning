@@ -16,6 +16,7 @@ from scipy import sparse
 
 from paper_comparison.evaluation import rectangle_vertices
 from paper_comparison.model import bus_vehicle
+from paper_comparison.vehicle import GEOMETRY
 
 
 @dataclass(frozen=True)
@@ -189,16 +190,18 @@ class XingPlanner:
             ego_lo, ego_hi = self._extents(x)
             o = self.options
             obs_s = o.obstacle_start + o.obstacle_speed * (time + j * self.dt)
+            obs_n = self.settings.obstacle_lateral
             obstacle = np.r_[
-                o.obstacle_speed, self.road.numeric_pose([obs_s, 0, 0]), obs_s, 0.0, 0.0
+                o.obstacle_speed, self.road.numeric_pose([obs_s, obs_n, 0]), obs_s, obs_n, 0.0
             ]
             obs_lo, obs_hi = self._extents(obstacle)
             road_lo, road_hi = (
-                (-1.15, 1.15) if o.road_bound == "point" else (ego_lo[1], ego_hi[1])
+                (-GEOMETRY.half_width, GEOMETRY.half_width) if o.road_bound == "point" else (ego_lo[1], ego_hi[1])
             )
             dlo = -self.road.half_width + self.settings.road_margin - road_lo
             dhi = self.road.half_width - self.settings.road_margin - road_hi
-            lateral_wall = obs_hi[1] - ego_lo[1] + self.settings.obstacle_margin
+            # The extents are relative to each vehicle's own (s, n).
+            lateral_wall = obs_n + obs_hi[1] - ego_lo[1] + self.settings.obstacle_margin
             s_lower = obs_s + obs_lo[0] - ego_hi[0] - self.settings.obstacle_margin
             s_upper = obs_s + obs_hi[0] - ego_lo[0] + self.settings.obstacle_margin
             blocked = lateral_wall > dhi

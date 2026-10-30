@@ -18,6 +18,7 @@ from reiter2023.geometry import (
     covering_circles_paper,
     ellipse_constraint,
 )
+from paper_comparison.vehicle import GEOMETRY
 from reiter2023.trajectory_planner_acados_20222 import paper_vehicle
 
 
@@ -29,6 +30,9 @@ class Settings:
     speed: float = 15.0
     road_margin: float = 0.2
     obstacle_margin: float = 0.2
+    # Lateral offset of the obstacle from the reference line. Zero places it on
+    # the centre line, which is what every run before the gap study used.
+    obstacle_lateral: float = 0.0
     max_speed: float = 20.0
     min_acc: float = -3.0
     max_acc: float = 2.5
@@ -42,24 +46,24 @@ class Settings:
         1000.0,
         1000.0,
         1.0,
-        10000.0 * 4.32**2,
-        2e6 * 4.32**2,
+        10000.0 * GEOMETRY.wheelbase**2,
+        2e6 * GEOMETRY.wheelbase**2,
         1.0,
         1.0,
         1.0,
     )
-    terminal_weights: tuple = (10.0, 500.0, 1000.0, 1000.0, 1.0, 10000.0 * 4.32**2)
+    terminal_weights: tuple = (10.0, 500.0, 1000.0, 1000.0, 1.0, 10000.0 * GEOMETRY.wheelbase**2)
 
 
 def bus_vehicle():
     v = paper_vehicle()
     # Table 1 totals 6.50 m, but wb+overhangs totals 6.50 exactly as well.
     # vehicle_gym's center=wb/2 needs a +0.09 m rear-axle correction below.
-    v.length_front = v.length_rear = 4.32 / 2
-    v.chassis_length, v.chassis_width = 6.5, 2.3
+    v.length_front = v.length_rear = GEOMETRY.wheelbase / 2
+    v.chassis_length, v.chassis_width = GEOMETRY.length, GEOMETRY.width
     v.maximum_velocity = 20.0
-    v.maximum_steering_angle = np.deg2rad(29.32)
-    v.maximum_steering_rate = np.deg2rad(24.55)
+    v.maximum_steering_angle = np.deg2rad(GEOMETRY.max_steering_deg)
+    v.maximum_steering_rate = np.deg2rad(GEOMETRY.max_steering_rate_degps)
     v.maximum_lateral_acc = 5.0
     v.maximum_acceleration_force = v.mass * 2.5
     v.maximum_deceleration_force = v.mass * 3.0
@@ -75,7 +79,7 @@ def transform_local(pose, x, y=0.0):
 
 def gym_pose(pose):
     """Correct vehicle_gym's symmetric-chassis origin for the real bus overhangs."""
-    shift = (6.5 / 2 - 1.0) - 4.32 / 2
+    shift = (GEOMETRY.length / 2 - GEOMETRY.rear_overhang) - GEOMETRY.wheelbase / 2
     return ca.vertcat(transform_local(pose, shift), pose[2])
 
 
@@ -105,16 +109,17 @@ def segment_squared(a, b, c, d):
 
 def hybrid_parts(pose):
     """Equations (15)--(21): central capsule plus four end-strip circles."""
-    center = 6.5 / 2 - 1.0
-    half_segment = (6.5 - 2.3) / 2
+    length, width = GEOMETRY.length, GEOMETRY.width
+    center = length / 2 - GEOMETRY.rear_overhang
+    half_segment = (length - width) / 2
     a = transform_local(pose, center - half_segment)
     b = transform_local(pose, center + half_segment)
     circles = [
-        transform_local(pose, center + sx * (6.5 / 2 - 2.3 / 4), sy * 2.3 / 4)
+        transform_local(pose, center + sx * (length / 2 - width / 4), sy * width / 4)
         for sx in [-1, 1]
         for sy in [-1, 1]
     ]
-    return a, b, 2.3 / 2, circles, np.sqrt(2) * 2.3 / 4
+    return a, b, width / 2, circles, np.sqrt(2) * width / 4
 
 
 def capsule_distance(pose, other_pose, margin):
@@ -199,8 +204,8 @@ def approximate_road_offsets(x, road, segments=5, frozen_heading=False):
     """
     s, n, alpha = x[0], x[1], x[2]
     result = []
-    for longitudinal in [-1.0, 5.5]:
-        for lateral in [-1.15, 1.15]:
+    for longitudinal in [-GEOMETRY.rear_overhang, GEOMETRY.front_extent]:
+        for lateral in [-GEOMETRY.half_width, GEOMETRY.half_width]:
             ds = longitudinal * ca.cos(alpha) - lateral * ca.sin(alpha)
             # Signed ds handles the backward rear-overhang integral explicitly.
             offset = n + lateral / ca.cos(alpha)
@@ -453,7 +458,9 @@ class PaperModel:
         times = time + np.arange(self.N + 1) * self.dt
         rows = [
             np.r_[
-                self.road.numeric_pose([obstacle_start + obstacle_speed * t, 0, 0]),
+                self.road.numeric_pose(
+                    [obstacle_start + obstacle_speed * t, self.settings.obstacle_lateral, 0]
+                ),
                 initial_s + k * self.dt * self.settings.speed,
                 self.settings.lateral,
                 self.settings.speed,

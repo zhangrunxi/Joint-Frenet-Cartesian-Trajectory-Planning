@@ -1,0 +1,3 @@
+method,cases,completed,evaluated,curb_strikes,margin_violations,min_clearance_m,median_clearance_m
+xing_joint_corridor,32,0,32,0,0,0.2000243228421006,0.29966418625915736
+xing_joint_corridor_point,32,0,32,32,32,-0.04371164458580523,-0.011966583931723562

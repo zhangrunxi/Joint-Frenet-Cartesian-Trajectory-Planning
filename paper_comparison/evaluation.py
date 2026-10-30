@@ -6,6 +6,8 @@ negative clearance is penetration. Polygon inputs are cyclic convex vertices.
 
 import numpy as np
 
+from paper_comparison.vehicle import GEOMETRY
+
 
 def _first_three(value, name):
     values = np.asarray(value, dtype=float).reshape(-1)
@@ -34,7 +36,12 @@ def _polygon(value):
     return vertices
 
 
-def rectangle_vertices(pose, length=6.5, width=2.3, rear_overhang=1.0):
+def rectangle_vertices(
+    pose,
+    length=GEOMETRY.length,
+    width=GEOMETRY.width,
+    rear_overhang=GEOMETRY.rear_overhang,
+):
     """Return four CCW chassis corners for a rear-axle ``[x, y, yaw]`` pose.
 
     The longitudinal body interval is [-rear_overhang, length-rear_overhang],

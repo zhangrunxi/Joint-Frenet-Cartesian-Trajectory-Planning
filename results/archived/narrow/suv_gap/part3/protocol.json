@@ -1,0 +1,29 @@
+{
+  "task": "gap",
+  "vehicle": "suv",
+  "gap_m": [
+    2.4,
+    2.6,
+    2.8,
+    3.0,
+    3.3,
+    3.6,
+    4.0,
+    4.4,
+    4.8
+  ],
+  "kappa_per_m": [
+    0.0,
+    0.03333333333333333,
+    0.05,
+    -0.04
+  ],
+  "initial_speed_mps": [
+    6.0,
+    9.0
+  ],
+  "curb_clearance_m": 0.3,
+  "obstacle_start_m": 30.0,
+  "steps": 120,
+  "xing_max_iterations": 50
+}

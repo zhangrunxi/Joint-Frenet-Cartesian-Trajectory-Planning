@@ -13,6 +13,7 @@ import osqp
 from scipy import sparse
 
 from paper_comparison.model import approximate_road_offsets, bus_vehicle, gym_pose
+from paper_comparison.vehicle import GEOMETRY
 from reiter2023.geometry import covering_circles, ellipse_constraint
 
 
@@ -104,7 +105,7 @@ class JointLinearProxy:
         self.X = self.U = None
 
     def initial(self):
-        return self.augment(np.array([0, 0, 0, 12, np.arctan(4.32 * self.road.kappa)]))
+        return self.augment(np.array([0, 0, 0, 12, np.arctan(GEOMETRY.wheelbase * self.road.kappa)]))
 
     def augment(self, state):
         return np.r_[state[:5], self.road.numeric_pose(state)]
