@@ -38,7 +38,7 @@
 
 ### 本文方法
 
-- 论文：本目录上两级的 `Joint_Frenet_Cartesian_Trajectory_Planning.pdf`，每次运行记录 SHA-256。
+- 论文：即提交版论文，其版权归作者所有，因此不在本仓库中分发。每次运行会记录所用论文文件的 SHA-256，持有论文的读者可据此核对重建代码与论文指向同一份文档。
 - 工程参考：用户给出的 `igoliao/planning` 的 `2.1` 分支，提交 `bee02d33c0cb50a5605db98b3cac44b816cdfecf`。仅在开发机上以浅克隆、no-checkout 方式读取，没有直接运行或整体移植。
 - 核查文件：`trajectory_gen/algorithm/cilqr_trajectory/vehicle_model.{cc,h}`、`cilqr_traj_data.{cc,h}`、`cilqr_traj_cost.{cc,h}`、`cilqr_traj_solver.cc`、`cilqr_traj_problem.cc` 和 `proto/cilqr_traj_optimizer.proto`。
 - 状态 `[s,n,alpha,v,a,kappa]`，输入 `[jerk,kappa_dot]`；Frenet 动力学、Cartesian 碰撞几何；道路使用四角的离散近似投影。
@@ -56,6 +56,13 @@
 ### Xing [26]
 
 [论文 DOI](https://doi.org/10.1109/LRA.2022.3194330)。目前的论文全文访问、开放元数据检索、相关专利及代理差异，详见 `sources/XING_ACCESS_AND_FIDELITY.md`。未发现可确认属于该论文的公开仓库；检索到的同名 Cartesian/Frenet 项目不能因此认作原实现。
+
+### 配置表
+
+各方法的配置 —— 边界、车辆几何、安全裕量、时域、步长、参考线、约束集、
+代价权重与求解器后端 —— 由 `scripts/describe_method_configurations.py`
+从代码生成，输出到 `docs/method_configurations.md`。
+**用生成而非手写**，是为了防止它与实际运行的代码脱节。
 
 ## 4. 共同条件与不能隐藏的适配
 

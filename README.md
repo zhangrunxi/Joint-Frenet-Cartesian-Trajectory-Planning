@@ -118,6 +118,7 @@ clearance at the saved states. It does not re-time the solvers.
 | Contour accuracy against the discretization count | `scripts/run_ndisc_sweep.py` | `results/archived/contour_accuracy/` |
 | Road-width sensitivity | `scripts/run_width_sweep.sh` | `results/archived/final_width_comparison_plots_v2/` |
 | Pruning procedure figure | `scripts/plot_pruning_figure.py` | `results/archived/geometry_conservatism/pruning_procedure.png` |
+| Configuration of every compared method | `scripts/describe_method_configurations.py` | `docs/method_configurations.md` |
 
 The two randomized archives carry a `provenance.json` that records the protocol,
 the seed and the digests of the source files that produced them.

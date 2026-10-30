@@ -39,7 +39,7 @@ Therefore there are **3 architecture families and 10 configurations, of which 8 
 
 ### Method of This Paper
 
-- Paper: `Joint_Frenet_Cartesian_Trajectory_Planning.pdf` two levels above this directory; the SHA-256 is recorded on every run.
+- Paper: the submitted manuscript, which is under the authors' copyright and therefore not redistributed here. The SHA-256 of the exact file used for a run is recorded in that run's provenance, so a reader with the manuscript can verify that the reconstruction and the paper refer to the same document.
 - Engineering reference: the `2.1` branch of `igoliao/planning` given by the user, commit `bee02d33c0cb50a5605db98b3cac44b816cdfecf`. It was read only as a shallow, no-checkout clone on the development machine; it was never run directly nor ported wholesale.
 - Inspected files: `trajectory_gen/algorithm/cilqr_trajectory/vehicle_model.{cc,h}`, `cilqr_traj_data.{cc,h}`, `cilqr_traj_cost.{cc,h}`, `cilqr_traj_solver.cc`, `cilqr_traj_problem.cc`, and `proto/cilqr_traj_optimizer.proto`.
 - State `[s,n,alpha,v,a,kappa]`, inputs `[jerk,kappa_dot]`; Frenet dynamics, Cartesian collision geometry; the road uses a discrete approximate projection of the four corners.
@@ -57,6 +57,15 @@ The engineering reference uses Euler integration, circular collisions, and soft-
 ### Xing [26]
 
 [Paper DOI](https://doi.org/10.1109/LRA.2022.3194330). Details on the current access to the full paper text, open metadata retrieval, related patents, and the proxy differences are in `sources/XING_ACCESS_AND_FIDELITY.md`. No public repository that can be confirmed to belong to that paper was found; the Cartesian/Frenet projects with the same name that were retrieved cannot therefore be taken as the original implementation.
+
+### Configuration Table
+
+The per-method configuration — bounds, vehicle geometry, safety margins,
+horizon, step size, reference line, constraint set, cost weights and solver
+backend — is generated from the code by
+`scripts/describe_method_configurations.py` and written to
+`docs/method_configurations.md`. It is generated rather than written by hand
+so that it cannot drift away from the runners.
 
 ## 4. Common Conditions and Adaptations That Must Not Be Hidden
 
