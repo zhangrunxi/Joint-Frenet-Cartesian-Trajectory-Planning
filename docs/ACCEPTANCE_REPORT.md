@@ -40,7 +40,7 @@ Therefore there are **3 architecture families and 10 configurations, of which 8 
 ### Method of This Paper
 
 - Paper: `Joint_Frenet_Cartesian_Trajectory_Planning.pdf` two levels above this directory; the SHA-256 is recorded on every run.
-- Engineering reference: the `2.1` branch of `igoliao/planning` given by the user, commit `bee02d33c0cb50a5605db98b3cac44b816cdfecf`. It was read only as a shallow, no-checkout clone in `/home/runxi.zhang/work/academic/planning-reference-2.1` on beast; it was never run directly nor ported wholesale.
+- Engineering reference: the `2.1` branch of `igoliao/planning` given by the user, commit `bee02d33c0cb50a5605db98b3cac44b816cdfecf`. It was read only as a shallow, no-checkout clone on the development machine; it was never run directly nor ported wholesale.
 - Inspected files: `trajectory_gen/algorithm/cilqr_trajectory/vehicle_model.{cc,h}`, `cilqr_traj_data.{cc,h}`, `cilqr_traj_cost.{cc,h}`, `cilqr_traj_solver.cc`, `cilqr_traj_problem.cc`, and `proto/cilqr_traj_optimizer.proto`.
 - State `[s,n,alpha,v,a,kappa]`, inputs `[jerk,kappa_dot]`; Frenet dynamics, Cartesian collision geometry; the road uses a discrete approximate projection of the four corners.
 - `paper_comparison/model.py` implements the model, the hybrid geometry, and the SQP; `paper_comparison/cilqr.py` implements the AL/PHR penalties, the Riccati backward recursion, the regularization, and the backtracking.

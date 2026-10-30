@@ -39,7 +39,7 @@
 ### 本文方法
 
 - 论文：本目录上两级的 `Joint_Frenet_Cartesian_Trajectory_Planning.pdf`，每次运行记录 SHA-256。
-- 工程参考：用户给出的 `igoliao/planning` 的 `2.1` 分支，提交 `bee02d33c0cb50a5605db98b3cac44b816cdfecf`。仅在 beast 的 `/home/runxi.zhang/work/academic/planning-reference-2.1` 以浅克隆、no-checkout 方式读取，没有直接运行或整体移植。
+- 工程参考：用户给出的 `igoliao/planning` 的 `2.1` 分支，提交 `bee02d33c0cb50a5605db98b3cac44b816cdfecf`。仅在开发机上以浅克隆、no-checkout 方式读取，没有直接运行或整体移植。
 - 核查文件：`trajectory_gen/algorithm/cilqr_trajectory/vehicle_model.{cc,h}`、`cilqr_traj_data.{cc,h}`、`cilqr_traj_cost.{cc,h}`、`cilqr_traj_solver.cc`、`cilqr_traj_problem.cc` 和 `proto/cilqr_traj_optimizer.proto`。
 - 状态 `[s,n,alpha,v,a,kappa]`，输入 `[jerk,kappa_dot]`；Frenet 动力学、Cartesian 碰撞几何；道路使用四角的离散近似投影。
 - `paper_comparison/model.py` 实现模型、混合几何和 SQP；`paper_comparison/cilqr.py` 实现 AL/PHR 罚项、Riccati 反向递推、正则化和回溯。

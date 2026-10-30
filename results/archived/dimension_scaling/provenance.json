@@ -39,7 +39,7 @@
   },
   "replay_sources": [
     {
-      "path": "repo/experiments/reiter20/results/paper_comparison_wide_final/paper6_hybrid_sqp_straight.json",
+      "path": "results/paper_comparison_wide_final/paper6_hybrid_sqp_straight.json",
       "sha256": "aa2470be87b5e3fdf0101d20a7af4e1e28604b6a61c953e9716e3455ad467c32",
       "initial_states": [
         [
@@ -213,7 +213,7 @@
       ]
     },
     {
-      "path": "repo/experiments/reiter20/results/paper_comparison_wide_final/paper6_hybrid_sqp_curve.json",
+      "path": "results/paper_comparison_wide_final/paper6_hybrid_sqp_curve.json",
       "sha256": "228bc6832ca43fadaf8f839c8a83ec53935d07eb81bbfca6e1b0d7e154f0c13e",
       "initial_states": [
         [
@@ -387,7 +387,7 @@
       ]
     },
     {
-      "path": "repo/experiments/reiter20/results/paper_comparison_narrow_final/paper6_hybrid_sqp_straight.json",
+      "path": "results/paper_comparison_narrow_final/paper6_hybrid_sqp_straight.json",
       "sha256": "578bb49d5047e5158a4d3a312a8cee66ce45b459715155084f7c0a9f59158bc2",
       "initial_states": [
         [
@@ -561,7 +561,7 @@
       ]
     },
     {
-      "path": "repo/experiments/reiter20/results/paper_comparison_narrow_final/paper6_hybrid_sqp_curve.json",
+      "path": "results/paper_comparison_narrow_final/paper6_hybrid_sqp_curve.json",
       "sha256": "a5ededfefde3499a83c3f5f219dab196c1bbf2dbf187512c55b4cd0ab1fd0b19",
       "initial_states": [
         [
