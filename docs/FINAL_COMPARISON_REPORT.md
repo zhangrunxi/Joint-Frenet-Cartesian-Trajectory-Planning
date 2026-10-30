@@ -332,8 +332,8 @@ statements of this paper was checked item by item, and the results are recorded 
    which is one of the core arguments of [20] and is consistent with the direction of this paper's criticism of "Frenet obstacle over-approximation".
 
 These verification results allow the related work to be rewritten as sourced and measurable statements, replacing the originally unfounded
-"dimensionality explosion" phrasing. A draft of the rewritten passage is in
-`../../论文修改稿_评审意见2和3.md`.
+"dimensionality explosion" phrasing. The rewritten passage is given in the
+response to the reviewer, together with the measured state overhead.
 
 ## 10. Supplement: Verification Results Against the State Definitions of the Xing Text (2026-10-30)
 

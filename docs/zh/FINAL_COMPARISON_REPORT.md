@@ -315,8 +315,8 @@ bash scripts/run_final_comparison.sh --steps 120 \
    这是 [20] 的核心论点之一，与本文「Frenet 障碍物过近似」的批评方向一致。
 
 这些核对结果使相关工作可以改写为有出处、可测量的表述，取代原来无依据的
-"dimensionality explosion" 一语。相关改写草稿见
-`../../论文修改稿_评审意见2和3.md`。
+"dimensionality explosion" 一语。改写后的段落见给评审的回复信，并附实测的
+状态冗余开销。
 
 ## 10. 补充：Xing 原文状态定义的核对结果（2026-10-30）
 
