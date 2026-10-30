@@ -200,6 +200,38 @@ N=40、2 维控制时，直接多重打靶的未消元变量数 `nx*(N+1)+nu*N` 
 
 完整结果和图：`results/exact_road_sensitivity/summary.csv`、`results/exact_road_sensitivity/plots/trajectories.png`；原始正式与宽度扫描结果均未覆盖。
 
+### Fig. 7 冗余值复现
+
+论文 Fig. 7 报告了三圆覆盖、五圆覆盖与本文胶囊+角圆模型的冗余量。三者都可由
+论文自己的 Eq.(11)–(14) 与 Eq.(22) 推出：
+
+    r(N)  = (W/2) * sqrt(1 + lambda^2 / N^2),   lambda = L / W
+    dL(N) = 2 * r(N) - L / N
+    dW(N) = 2 * r(N) - W
+    本文模型: dL = dW = (W/2) * (sqrt(2) - 1)
+
+用 `scripts/measure_geometry_redundancy.py` 复现：
+
+| 量 | 论文 | 复现 |
+| --- | ---: | ---: |
+| 三圆 (N = 3) minibus dL | 0.77 m | 0.765 m |
+| 三圆 (N = 3) minibus dW | 1.16 m | 1.165 m |
+| 五圆 (N = 5) minibus dL | 1.08 m | 1.081 m |
+| 五圆 (N = 5) minibus dW | 0.48 m | 0.481 m |
+| 本文模型 minibus dL = dW | 0.43 m | 0.435 m |
+
+**五圆覆盖是 Eq.(11)–(14) 在 N = 5 处的取值，不是另一个公式**。用固定半径排布
+五个圆无法复现印刷值，这一关系由 `tests/test_paper_circle_covering.py` 固定。
+
+「本文模型更紧」这一说法**有例外，且例外被明确写出而不是被隐藏**：纵向上本文
+模型对所有车型都更紧；横向上除了 Smart 之外比三圆更紧，而比五圆只在 Minibus
+和 Coach 上更紧。对 Table 1 的测试车（6.50 m × 2.30 m），本文模型纵向 0.48 m
+（对比 0.99 m 与 1.34 m），横向 0.48 m（对比三圆 0.86 m、五圆 0.34 m）。
+例外清单由 `tests/test_geometry_redundancy.py` 断言，不会被悄悄删掉。
+
+注意与上一小节的保守性审计的区别：审计用的是对比实现的**固定半径**覆盖，
+本小节用的是论文的 **N 相关**表达式，两者回答的不是同一个问题，不可互换。
+
 ## 8. 评估、文件与复跑
 
 - 独立评估器 `paper_comparison/evaluation.py` 使用真实矩形，障碍物用 SAT/边段距离，道路用直线或圆环全车体边缘净空；包括圆弧道路边内部点，不只四角。

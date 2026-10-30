@@ -201,6 +201,47 @@ An exact discrete node constraint is still not a continuous-time margin guarante
 
 Complete results and figures: `results/exact_road_sensitivity/summary.csv` and `results/exact_road_sensitivity/plots/trajectories.png`; neither the raw formal results nor the width sweep results were overwritten.
 
+### Fig. 7 Redundancy: Reproduction of the Printed Values
+
+The manuscript's Fig. 7 reports the redundancy of the three-circle covering, the
+five-circle covering and the proposed capsule-plus-corner-circle model. All
+three follow from the manuscript's own Eq. 11-14 and Eq. 22:
+
+    r(N)  = (W/2) * sqrt(1 + lambda^2 / N^2),   lambda = L / W
+    dL(N) = 2 * r(N) - L / N
+    dW(N) = 2 * r(N) - W
+    proposed: dL = dW = (W/2) * (sqrt(2) - 1)
+
+Reproduced with `scripts/measure_geometry_redundancy.py`:
+
+| Quantity | Manuscript | Reproduced |
+| --- | ---: | ---: |
+| Three-circle (N = 3) minibus dL | 0.77 m | 0.765 m |
+| Three-circle (N = 3) minibus dW | 1.16 m | 1.165 m |
+| Five-circle (N = 5) minibus dL | 1.08 m | 1.081 m |
+| Five-circle (N = 5) minibus dW | 0.48 m | 0.481 m |
+| Proposed model minibus dL = dW | 0.43 m | 0.435 m |
+
+The five-circle covering is Eq. 11-14 evaluated at N = 5, not a separate
+formula. A five-circle layout with a fixed circle radius does not reproduce the
+printed value, which is the relation pinned by
+`tests/test_paper_circle_covering.py`.
+
+The claim that the proposed model is tighter has exceptions, and they are
+stated rather than hidden. Longitudinally the proposed model is tighter than
+both circle coverings for every vehicle type. Laterally it is tighter than the
+three-circle covering for every type except the Smart, and tighter than the
+five-circle covering only for the Minibus and the Coach. For the test vehicle of
+Table 1 (6.50 m x 2.30 m) the proposed model gives 0.48 m longitudinally
+against 0.99 m and 1.34 m, and laterally 0.48 m against 0.86 m (three-circle)
+and 0.34 m (five-circle). The exception list is asserted in
+`tests/test_geometry_redundancy.py` so that it cannot be silently dropped.
+
+Note the difference from the conservatism audit in the previous subsection:
+that audit uses the fixed-radius covering of the comparison implementation,
+while this subsection uses the manuscript's N-dependent expression. The two
+answer different questions and are not interchangeable.
+
 ## 8. Evaluation, Files, and Re-running
 
 - The independent evaluator `paper_comparison/evaluation.py` uses the true rectangle, uses SAT/edge-segment distance for obstacles, and uses the whole-body edge clearance against a straight line or an annulus for the road; it includes points inside the curved road edge, not only the four corners.
