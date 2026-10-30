@@ -30,6 +30,18 @@ circles (3.65 m), and above that of the proposed geometry (3.18 m); see
 more often than the proposed SQP formulation. The narrow-road question is
 studied directly, with a gap sweep, in `../narrow/`.
 
+## The corrected harness
+
+Three differences between the evaluation harness and the methods were found
+after these results were seen: the node-0 nonlinear constraints of the
+proposed model were unset, the first-frame initial guess of the proposed model
+passed through the obstacle, and an iterate that met the violation tolerance at
+the iteration cap was rejected. Section 4 of `docs/NARROW_BENCHMARK_PROTOCOL.md`
+describes them and states which of them touches which method. The corrected
+run of this task is archived under `../narrow/bus_overtake_harmonized/`; the
+six-state SQP formulation passes 18 of 40 there, against 13 of 40 for the
+Reiter ellipse. The frozen numbers above are retained as the reference set.
+
 The table below is the original `success` ranking. It is kept so that the
 correction can be checked; **it does not measure passing**.
 
