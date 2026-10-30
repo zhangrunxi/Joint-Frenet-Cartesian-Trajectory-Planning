@@ -68,6 +68,8 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     archived = 0
     for source in sorted(args.input.glob("*.json")):
+        # The scenario definition, the protocol and the provenance record are
+        # copied unchanged below; they are not per-method statistics.
         if source.name in ("cases.json", "protocol.json", "provenance.json"):
             continue
         payload = json.loads(source.read_text())
@@ -81,10 +83,24 @@ def main():
 
     # The scenario definition and the protocol are copied unchanged: they are
     # what a reader needs in order to judge the numbers.
-    for name in ("cases.json", "protocol.json", "summary.json", "summary.csv", "results.csv"):
+    for name in (
+        "cases.json",
+        "protocol.json",
+        "provenance.json",
+        "summary.json",
+        "summary.csv",
+        "results.csv",
+    ):
         source = args.input / name
         if source.exists():
             (args.output / name).write_bytes(source.read_bytes())
+
+    # The figures are copied as well, so that the archive is self-contained.
+    figures = args.input / "figures"
+    if figures.is_dir():
+        (args.output / "figures").mkdir(exist_ok=True)
+        for figure in sorted(figures.glob("*.png")):
+            (args.output / "figures" / figure.name).write_bytes(figure.read_bytes())
 
     print(f"archived {archived} method files into {args.output}")
 
