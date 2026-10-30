@@ -106,6 +106,21 @@ bash scripts/run_random_benchmark.sh --output results/recheck_random_overtake \
 saved trajectories with an independent geometric evaluator, and recomputes
 clearance at the saved states. It does not re-time the solvers.
 
+## Where each reported number comes from
+
+| Claim in the manuscript or the response | Script that produces it | Archived output |
+| --- | --- | --- |
+| Fig. 7 redundancy of the three-circle, five-circle and proposed models | `scripts/measure_geometry_redundancy.py` | `results/archived/geometry_conservatism/geometry_redundancy.csv` |
+| Conservative-geometry audit (ellipse / three circles / proposed) | `scripts/measure_geometry_conservatism.py` | `results/archived/geometry_conservatism/summary.csv` |
+| Six- versus nine-state overhead | `scripts/run_dimension_scaling.py` | `results/archived/dimension_scaling/summary.csv` |
+| Randomized scenario set, general and overtaking tasks | `scripts/run_random_benchmark.py` | `results/archived/random_benchmark/`, `results/archived/random_benchmark_overtake/` |
+| Contour accuracy against the discretization count | `scripts/run_ndisc_sweep.py` | `results/archived/contour_accuracy/` |
+| Road-width sensitivity | `scripts/run_width_sweep.sh` | `results/archived/final_width_comparison_plots_v2/` |
+| Pruning procedure figure | `scripts/plot_pruning_figure.py` | `results/archived/geometry_conservatism/pruning_procedure.png` |
+
+The two randomized archives carry a `provenance.json` that records the protocol,
+the seed and the digests of the source files that produced them.
+
 ## Tests
 
 ```bash
