@@ -25,6 +25,7 @@ from paper_comparison.model import Settings
 from paper_comparison.vehicle import GEOMETRY
 from paper_comparison.xing2022 import XingOptions, XingPlanner
 from reiter2023 import CircularRoad
+from paper_comparison.harness_options import accepted_status
 
 FINAL_METHODS = METHODS[:8] + ["xing_joint_corridor", "xing_joint_yield"]
 # Published reference-point road bounds; only for road-contour ablations.
@@ -77,7 +78,7 @@ def run_xing(
         previous = planner.previous_input.copy()
         d = planner.solve(state, j * settings.dt)
         d["accepted"] = bool(
-            d["status"] == 0
+            accepted_status(d["status"])
             and d["max_violation"] <= 1e-4
             and np.isfinite(planner.X).all()
             and np.isfinite(planner.U).all()

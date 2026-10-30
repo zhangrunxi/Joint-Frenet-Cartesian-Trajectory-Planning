@@ -16,6 +16,7 @@ from scipy import sparse
 
 from paper_comparison.evaluation import rectangle_vertices
 from paper_comparison.model import bus_vehicle
+from paper_comparison.harness_options import INITIAL_GUESS, lateral_ramp
 from paper_comparison.vehicle import GEOMETRY
 
 
@@ -355,6 +356,13 @@ class XingPlanner:
             self.X[0] = initial
             for j in range(self.N):
                 self.X[j + 1] = self.integrate(self.X[j], self.U[j], self.dt)
+            if INITIAL_GUESS == "ramp":
+                # Same guess as the other planners: the Cartesian pose of a
+                # constant-speed, laterally ramped path along the reference.
+                for j in range(1, self.N + 1):
+                    n = lateral_ramp(j, self.N, 0.0, self.settings.lateral)
+                    s = initial[0] * j * self.dt
+                    self.X[j, 1:4] = np.asarray(self.road.numeric_pose([s, n, 0.0])).ravel()
         self.X[0] = initial
         qp_ms, history, status = 0.0, [], 2
         qp_status = "not_run"

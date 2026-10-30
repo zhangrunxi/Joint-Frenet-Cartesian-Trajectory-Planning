@@ -17,6 +17,21 @@ obstacle is a vehicle of the same type.
 | Bus (Table 1 of the manuscript) | 6.50 m x 2.30 m | 4.32 m | 1.00 m |
 | SUV (representative mid-size) | 4.80 m x 1.90 m | 2.85 m | 1.00 m |
 
+## Three settings
+
+| Directory suffix | Meaning |
+| --- | --- |
+| *(none)* | The frozen protocol: each method keeps its own first-frame initial guess, only a converged solve is accepted, and the paper model leaves the node-0 nonlinear constraints unset. |
+| `_fixonly` | Only the node-0 constraint defect of the paper model is repaired. |
+| `_harmonized` | Node-0 repair plus a shared lateral-ramp initial guess and a shared acceptance of an iterate that met the violation tolerance at the iteration cap. Every method is affected. |
+
+The `_harmonized` set was added after the frozen results were seen, and is
+reported next to the frozen set rather than in place of it. Section 4 of the
+protocol states which change touches which method, and what each one does to
+the numbers. Two asymmetries that favour Reiter are disclosed there as well:
+the original vendor code retries once after a failed solve, and its default
+initial guess does not pass through the obstacle.
+
 ## Gap task (`bus_gap/`, `suv_gap/`)
 
 A stopped vehicle 0.3 m from the right curb leaves a gap `g` on the left. The
@@ -29,6 +44,8 @@ a 0.01 m tolerance). Following the obstacle without collision is not a pass.
 Grazing the obstacle with a geometry that does not cover the body is not a
 pass with margin either.
 
+### Frozen protocol
+
 | Method | Bus, passes | Bus, narrowest gap (straight / curve) | SUV, passes | SUV, narrowest gap (straight / curve) |
 | --- | ---: | --- | ---: | --- |
 | This paper, hybrid | **41/72** | **3.6** / 4.0 m | **45/72** | **2.8** / **2.8** m |
@@ -38,17 +55,35 @@ pass with margin either.
 | This paper, capsule only (Eq. 23) | 30/72 | 4.0 / 4.5 m | 39/72 | 2.8 / 3.3 m |
 | Reiter, ellipse (direct / lifted) | 2 / 2 of 72 | none / 6.0 m | 7 / 2 of 72 | 4.8 / 4.4 m |
 
-What the table does and does not say:
+On the curved bus cases at `g = 3.6 m`, Xing's rectangle corridor passes 3 of
+6 and the hybrid none. This is the one gap where a compared method passes and
+the proposed one does not.
 
-- The ellipse cannot pass in these gaps. Its lateral extent is fixed by the
-  covering of the whole body.
+### Harmonized settings
+
+| Method | Bus, passes | Bus, narrowest gap (straight / curve) | SUV, passes | SUV, narrowest gap (straight / curve) |
+| --- | ---: | --- | ---: | --- |
+| This paper, hybrid | **52/72** | **3.3** / **3.3** m | **51/72** | **2.8** / **2.8** m |
+| This paper, circles (3 or 5) | 38/72 | 4.0 / 4.0 m | 38/72 | 3.3 / 3.3 m |
+| Reiter, circles (direct / lifted) | 38/72 | 4.0 / 4.0 m | 38/72 | 3.3 / 3.3 m |
+| Xing, keep-left corridor | 37/72 | 4.5 / 3.6 m | 42/72 | 3.3 / 2.8 m |
+| This paper, capsule only (Eq. 23) | 30/72 | 4.0 / 4.5 m | 39/72 | 2.8 / 3.3 m |
+| Reiter, ellipse (direct / lifted) | 10 / 9 of 72 | 6.0 / 5.5 m | 11 / 11 of 72 | 4.8 / 4.4 m |
+
+The case where the proposed method lost to Xing disappears once the first
+frame starts from a guess that does not pass through the obstacle: the
+proposed model then passes every case that Xing passes. The harmonized guess
+helps the conservative Reiter ellipse more than it helps the proposed model
+(2 to 10 of 72 against 41 to 52 of 72), so it does not flatter us.
+
+What the tables do and do not say:
+
+- The ellipse cannot pass in the narrow gaps. Its lateral extent is fixed by
+  the covering of the whole body.
 - **The proposed hybrid geometry is not the exact rectangle.** Its corner
   circles reach 1.39 m from the axis of a 2.30 m wide bus, so its minimum gap
   is 3.18 m against 2.70 m for the exact rectangle
   (`scripts/measure_minimum_gap.py`).
-- On the curved bus cases at `g = 3.6 m`, Xing's rectangle corridor passes
-  3 of 6 and the hybrid none. This is the one gap where a compared method
-  passes and the proposed one does not.
 - The capsule alone (Eq. 23) passes narrow gaps without collision but closer
   than the margin (29 such passes per vehicle, clearance 0.001 m to 0.185 m),
   because it does not cover the corners.
@@ -98,11 +133,35 @@ What the table does and does not say:
   the starting pose but not its body clearance. This is a defect of the
   scenario, and it is reported rather than removed.
 
+### Contour discretisation
+
+The margin loss above is a discretisation error. Repeating the curb task with
+ten segments instead of five (`_ndisc10/`) recovers most of it:
+
+| Vehicle | N_disc | Completed | Curb strikes | Smallest clearance | Cases below 0.19 m |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Bus | 5 | 32/32 | 0 | 0.125 m | 8 |
+| Bus | 10 | 32/32 | 0 | **0.182 m** | 8 |
+| SUV | 5 | 28/32 | 0 | 0.146 m | 8 |
+| SUV | 10 | 28/32 | 0 | **0.188 m** | 8 |
+
+The margin violation count does not change, but the worst case improves by
+0.057 m for the bus and 0.042 m for the SUV. The eight cases remain the
+three-curve cases whose physical clearance is limited by the road itself
+rather than by the contour error.
+
 ## Re-running it
 
 ```bash
+# the frozen protocol
 BENCH_VEHICLE=bus bash scripts/run_random_benchmark.sh --task gap --output results/recheck_gap
-BENCH_VEHICLE=suv bash scripts/run_random_benchmark.sh --task curb --output results/recheck_curb
+# the harmonized settings of protocol section 4
+BENCH_VEHICLE=bus BENCH_INITIAL_GUESS=ramp BENCH_ACCEPT_MAXITER=1 \
+  bash scripts/run_random_benchmark.sh --task gap --output results/recheck_gap_harmonized
+# ten contour segments
+BENCH_VEHICLE=bus BENCH_N_DISC=10 BENCH_INITIAL_GUESS=ramp BENCH_ACCEPT_MAXITER=1 \
+  bash scripts/run_random_benchmark.sh --task curb --output results/recheck_curb_ndisc10
+
 .venv/bin/python scripts/summarize_narrow_benchmark.py --task gap \
     --input results/recheck_gap --output results/recheck_gap/summary.csv
 ```

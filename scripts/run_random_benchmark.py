@@ -27,6 +27,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import numpy as np
 
 from paper_comparison.model import Settings
+from paper_comparison.harness_options import ACCEPT_MAXITER, INITIAL_GUESS, N_DISC
 from paper_comparison.vehicle import GEOMETRY
 from run_paper_comparison import run_case
 from run_final_comparison import run_xing
@@ -353,6 +354,10 @@ def main():
         cases = build_cases(protocol)
     protocol["steps"] = args.steps
     protocol["xing_max_iterations"] = args.xing_max_iterations
+    protocol["initial_guess"] = INITIAL_GUESS
+    protocol["n_disc"] = N_DISC
+    protocol["accept_maxiter"] = ACCEPT_MAXITER
+    protocol["stage0_nonlinear_constraints"] = True
     args.methods = args.methods or methods
     if args.output.exists() and any(args.output.iterdir()):
         raise FileExistsError("Use an empty new output directory")

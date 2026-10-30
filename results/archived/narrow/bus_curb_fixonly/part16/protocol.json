@@ -1,0 +1,30 @@
+{
+  "task": "curb",
+  "vehicle": "bus",
+  "half_width_m": [
+    2.5,
+    3.5
+  ],
+  "kappa_per_m": [
+    0.06666666666666667,
+    0.05,
+    0.03333333333333333,
+    0.025,
+    -0.06666666666666667,
+    -0.05,
+    -0.03333333333333333,
+    -0.025
+  ],
+  "initial_speed_mps": [
+    5.0,
+    8.0
+  ],
+  "obstacle_lateral_m": 30.0,
+  "obstacle_start_m": 30.0,
+  "steps": 120,
+  "xing_max_iterations": 50,
+  "initial_guess": "rollout",
+  "n_disc": 5,
+  "accept_maxiter": false,
+  "stage0_nonlinear_constraints": true
+}

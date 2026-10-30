@@ -29,6 +29,12 @@ from paper_comparison.model import (
     bus_vehicle,
     gym_pose,
 )
+from paper_comparison.harness_options import (
+    INITIAL_GUESS,
+    N_DISC,
+    accepted_status,
+    lateral_ramp,
+)
 from paper_comparison.vehicle import GEOMETRY
 from reiter2023 import CircularRoad, PlannerOptions, VehiclePlannerAcados20222
 
@@ -185,6 +191,7 @@ def run_case(
             kappa_as_state="nokappa" not in method,
             prune_keep=1,
             obstacle_constraint="capsule" if "capsule" in method else "components",
+            n_disc=N_DISC,
         )
         # "paper6_frozen_sqp" keeps the proposed geometry and only freezes the
         # heading deviation along the contour.
@@ -216,6 +223,16 @@ def run_case(
             whole_start = perf_counter()
             planner.set_obstacle_predictions(predictions)
             planner.set_states(state)
+            if k == 0 and INITIAL_GUESS == "ramp":
+                last = planner.n_nodes - 1
+                for stage in range(planner.n_nodes):
+                    guess = np.array(planner.solver.get(stage, "x"), dtype=float)
+                    n = lateral_ramp(stage, last, state[1], settings.lateral)
+                    s = state[0] + initial_speed * stage * settings.dt
+                    guess[:5] = [s, n, 0.0, initial_speed, state[4]]
+                    if planner.planner_opts.use_lifting:
+                        guess[5:8] = np.asarray(road.numeric_pose([s, n, 0.0])).ravel()
+                    planner.solver.set(stage, "x", guess)
             status = planner.solve()
             d = {
                 "status": status,
@@ -238,7 +255,7 @@ def run_case(
             X, U = planner.X, planner.U
         if startup is None:
             startup = dict(d)
-        d["accepted"] = d["status"] == 0 and d["max_violation"] <= 1e-4
+        d["accepted"] = accepted_status(d["status"]) and d["max_violation"] <= 1e-4
         d["cycle"] = k
         records.append(d)
         if not d["accepted"]:

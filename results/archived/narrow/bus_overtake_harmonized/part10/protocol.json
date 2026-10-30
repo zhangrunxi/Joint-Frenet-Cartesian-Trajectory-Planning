@@ -1,0 +1,43 @@
+{
+  "seed": 20261030,
+  "cases": 40,
+  "task": "overtake",
+  "half_width_m": [
+    4.6,
+    8.5
+  ],
+  "lateral_offset_m": [
+    -2.0,
+    -1.0,
+    0.0,
+    1.0,
+    2.0
+  ],
+  "kappa_per_m": [
+    -0.025,
+    0.0,
+    0.016666666666666666,
+    0.02857142857142857
+  ],
+  "obstacle_start_m": [
+    25.0,
+    35.0,
+    50.0
+  ],
+  "obstacle_speed_mps": [
+    6.0,
+    8.0,
+    11.0
+  ],
+  "initial_speed_mps": [
+    8.0,
+    12.0,
+    15.0
+  ],
+  "steps": 120,
+  "xing_max_iterations": 50,
+  "initial_guess": "ramp",
+  "n_disc": 5,
+  "accept_maxiter": true,
+  "stage0_nonlinear_constraints": true
+}

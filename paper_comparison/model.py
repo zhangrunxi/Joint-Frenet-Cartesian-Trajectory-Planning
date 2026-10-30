@@ -18,6 +18,7 @@ from reiter2023.geometry import (
     covering_circles_paper,
     ellipse_constraint,
 )
+from paper_comparison.harness_options import INITIAL_GUESS, lateral_ramp
 from paper_comparison.vehicle import GEOMETRY
 from reiter2023.trajectory_planner_acados_20222 import paper_vehicle
 
@@ -548,6 +549,10 @@ class AcadosPaperPlanner:
         am.xdot = ca.MX.sym("xdot", m.nx)
         am.f_expl_expr, am.f_impl_expr = m.rhs, am.xdot - m.rhs
         am.con_h_expr = am.con_h_expr_e = m.h
+        # acados does not apply con_h_expr at node 0; without this the lateral
+        # jerk and steering-rate limits would not bind the applied control u0.
+        # Only these two depend on u0; the state-only rows are fixed by x0.
+        am.con_h_expr_0 = m.h[1:3]
         # Terminal constraints cannot depend on an absent terminal control.
         am.con_h_expr_e = ca.substitute(m.h, m.u, ca.DM.zeros(2))
         am.cost_y_expr, am.cost_y_expr_e = m.residual, m.terminal_residual
@@ -565,6 +570,7 @@ class AcadosPaperPlanner:
         ocp.constraints.lbu, ocp.constraints.ubu = m.ul, m.uu
         ocp.constraints.lh = ocp.constraints.lh_e = m.hl
         ocp.constraints.uh = ocp.constraints.uh_e = m.hu
+        ocp.constraints.lh_0, ocp.constraints.uh_0 = m.hl[1:3], m.hu[1:3]
         ocp.constraints.x0 = m.initial()
         ocp.parameter_values = np.r_[
             1000, 0, 0, 0, m.settings.lateral, m.settings.speed,
@@ -641,7 +647,13 @@ class AcadosPaperPlanner:
         if self.X is None:
             state = initial.copy()
             for k in range(m.N + 1):
-                self.solver.set(k, "x", state)
+                guess = state.copy()
+                if INITIAL_GUESS == "ramp":
+                    guess[1] = lateral_ramp(k, m.N, initial[1], m.settings.lateral)
+                    guess[2] = 0.0
+                    if m.lifted:
+                        guess[6:9] = np.asarray(m.road.numeric_pose(guess[:3])).ravel()
+                self.solver.set(k, "x", guess)
                 if k < m.N:
                     self.solver.set(k, "u", np.zeros(2))
                     state = np.asarray(m.step(state, [0, 0])).ravel()

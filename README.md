@@ -121,6 +121,8 @@ clearance at the saved states. It does not re-time the solvers.
 | Six- versus nine-state overhead, serial timing on the randomized set | `scripts/run_random_benchmark.py` | `results/archived/random_benchmark_nine_state_serial/` |
 | Rank correlation between solve time and completion rate | `scripts/measure_rank_correlation.py` | `results/archived/rank_correlation/` |
 | Narrow-road gap and curb tasks, bus and SUV | `scripts/run_random_benchmark.py --task gap\|curb` | `results/archived/narrow/` |
+| The same tasks under the harmonized settings of protocol section 4 | `BENCH_INITIAL_GUESS=ramp BENCH_ACCEPT_MAXITER=1` | `results/archived/narrow/*_harmonized/` |
+| Contour discretisation on the curb task | `BENCH_N_DISC=10` | `results/archived/narrow/*_ndisc10/` |
 | Minimum passable gap of each obstacle geometry | `scripts/measure_minimum_gap.py` | printed; quoted in `results/archived/narrow/README.md` |
 | Contour accuracy against the discretization count | `scripts/run_ndisc_sweep.py` | `results/archived/contour_accuracy/` |
 | Road-width sensitivity | `scripts/run_width_sweep.sh` | `results/archived/final_width_comparison_plots_v2/` |
@@ -190,6 +192,12 @@ These are stated in full in `docs/AUDIT_FINDINGS.md` and
   (bus) without striking the curb.
 - The proposed hybrid geometry is more conservative than the exact rectangle:
   its minimum passable gap is 3.18 m against 2.70 m for the bus.
+- The node-0 nonlinear constraints of the proposed model were unset in the
+  earlier runs, so the solver did not constrain the control it executed while
+  the acceptance check applied the full constraint set. This defect is
+  repaired; Section 4 of `docs/NARROW_BENCHMARK_PROTOCOL.md` gives the
+  numbers before and after, and the harmonized settings it introduces apply
+  to every method.
 - The CiLQR implementation accepts on feasibility; it does not certify
   stationarity.
 - Clearance is sampled at 0.02 s. This is not a continuous-time safety proof.
