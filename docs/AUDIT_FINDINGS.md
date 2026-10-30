@@ -59,7 +59,7 @@ relative to this directory; line references describe the audited snapshot.
   4,105 cycles, with 34 complete. Including proxies: 76 cases / 8,455 cycles.
   These are configurations and scenarios, not independent paper baselines.
 - Scaling matches: 1,512 calls, 1,482 accepted, 741 jointly accepted pairs;
-  timing reductions 15.85% / 16.52% / 16.42%. Failures remain in the measurements.
+  timing reductions 18.83% / 19.79% / 19.64%. Failures remain in the measurements.
   Variable counts are nominal multiple-shooting counts, not memory measurements
   or evidence of dimensionality explosion.
 - All 34 audited source entries match recorded provenance, including historical

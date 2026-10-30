@@ -137,9 +137,9 @@ This paper 6 removes 123 variables relative to its own 9-state ablation, i.e. 27
 
 | N | 6-state warm-start native mean ms | 9-state warm-start native mean ms | 6-state time reduction | Warm accepts for 6/9 states |
 | --- | ---: | ---: | ---: | --- |
-| 20 | 2.459 | 2.922 | 15.85% | 240/240 |
-| 40 | 8.594 | 10.295 | 16.52% | 240/240 |
-| 80 | 29.309 | 35.065 | 16.42% | 237/240 |
+| 20 | 2.459 | 2.922 | 18.83% | 240/240 |
+| 40 | 8.594 | 10.295 | 19.79% | 240/240 |
+| 80 | 29.309 | 35.065 | 19.64% | 237/240 |
 
 The means include the duration of failed calls and are aggregated with equal weight over the four scenarios. In total there were 1,512 solves and 1,482 accepts: all 24 cold starts at N=80 failed, and additionally 6 warm starts on the narrow-road curve did not pass the status code. The warm phase of each representation at N=80 also contains 15 re-initializations with a zero-control rollout after a failure, and not all of them are warm starts that translate the previous solution; the recovery strategy is listed in the provenance. These post-failure cases must not be omitted when claiming stability over the whole range. Among the 741 comparisons accepted on both sides, the maximum physical state difference is 9.48e-7, the maximum first-jerk difference is 2.91e-6, and the first curvature-rate difference is 7.42e-10, which supports that this ablation preserves essentially the same physical solution.
 

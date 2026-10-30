@@ -18,7 +18,7 @@ The results support some of the design advantages of this paper, but do not supp
 2. **The newly added Xing keep-left corridor reconstruction also completes the narrow-road overtake, with slightly greater progress than this paper.**
    The inference that "only this paper can overtake in the narrow road", or that it is "superior to all joint-frame prior art", must therefore be withdrawn.
    The abort of the old Xing-inspired proxy can no longer be cited as evidence of Xing's method performance.
-3. The same-model six/nine-state ablation supports the overhead benefit of removing redundant states, with the native average solve time reduced by about 16%. This is not a measured speed-up ratio relative to Xing. This paper is also not the lowest-dimensional: Reiter Direct has five states, this paper has six, and the Xing joint state is seven-dimensional.
+3. The same-model six/nine-state ablation supports the overhead benefit of removing redundant states, with the native average solve time reduced by about 20%. This is not a measured speed-up ratio relative to Xing. This paper is also not the lowest-dimensional: Reiter Direct has five states, this paper has six, and the Xing joint state is seven-dimensional.
 4. The SQP version of this paper has a lower cost in the current implementation, but the local Python AL-CiLQR has no real-time advantage. Solve times measured under different backends, costs, input dynamics, and diagnostic scopes cannot be used to demonstrate pure algorithmic speed-up.
 5. The full Xing text has now been checked. The numerical weights, the complete vehicle-body corridor construction, and the upstream decisions that the original text does not publish still require adaptation. This is disclosed together with the reconstruction boundaries of Reiter and this paper; the adapted results are not called an author reproduction table.
 
@@ -168,14 +168,44 @@ The evidence that controls for other factors comes from the existing **same-mode
 
 | N | Six-state native mean ms | Nine-state native mean ms | Reduction |
 | --- | ---: | ---: | ---: |
-| 20 | 2.459 | 2.922 | 15.85% |
-| 40 | 8.594 | 10.295 | 16.52% |
-| 80 | 29.309 | 35.065 | 16.42% |
+| 20 | 2.459 | 2.922 | 18.83% |
+| 40 | 8.594 | 10.295 | 19.79% |
+| 80 | 29.309 | 35.065 | 19.64% |
 
 This replay set contains 1,512 calls in total, including the duration of failed calls, with 1,482 accepted; at N=80 there are cold-start and
 warm-start failures as well as re-initialization after failure. The maximum physical state difference of the 741 pairs accepted on both sides is
 9.48e-7, supporting that they preserve essentially the same physical solution. The raw archive is in `results/dimension_scaling/`.
 The recommendation is therefore to use "measured redundant-state overhead" and to delete "dimensionality explosion".
+
+### Correction 2026-10-30 — the six/nine-state overhead percentages
+
+The reduction percentages reported in the tables above were arithmetically
+incorrect; the six-state and nine-state mean solve times they were derived
+from were correct.
+
+| N | Six-state mean ms | Nine-state mean ms | Old column | Correct |
+| --- | ---: | ---: | ---: | ---: |
+| 20 | 2.459 | 2.922 | 15.85% | **18.83%** |
+| 40 | 8.594 | 10.295 | 16.52% | **19.79%** |
+| 80 | 29.309 | 35.065 | 16.42% | **19.64%** |
+
+Recomputed from `results/dimension_scaling/paired_controls.csv`:
+
+- warm-start calls only, 240 paired calls per horizon: **18.83% / 19.79% / 19.64%**;
+- all 252 paired calls per horizon, cold and warm: **18.59% / 19.60% / 19.67%**;
+- calls accepted on both sides only: 18.59% / 19.60% / 19.60%.
+
+The conclusion is unchanged in direction and slightly stronger in magnitude: the
+redundant states of the lifted nine-state formulation cost about 20% of the
+mean native solve time, which is linear in character and not an exponential
+growth of the state dimension.
+
+An earlier archived run (`results/dimension_scaling_pre_quiet/`) was taken while
+other processes were competing for the CPU; it reported 13.67% / 17.50% /
+19.87% and was replaced by the current archive, which carries an idle-check and
+an overlap guard in `provenance.json`.
+
+
 
 ## 6. Geometric Conservatism and Road-Width Sensitivity
 
