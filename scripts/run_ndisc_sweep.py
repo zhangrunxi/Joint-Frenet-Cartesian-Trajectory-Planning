@@ -70,11 +70,32 @@ def predicted_offsets(s, n, alpha, road, segments, frozen_heading=False):
     )
 
 
+def corner_positions(s, n, alpha, road, offsets):
+    """Cartesian positions of the four corners implied by a lateral offset.
+
+    The manuscript defines the error of Eq. (lateral_error) on the position
+    vector, so the positions are needed and not only the offsets: the error of
+    the road-boundary model is the distance between the corner the model
+    places and the corner the vehicle actually occupies.
+    """
+    pose = np.asarray(road.pose(s, n, alpha)).ravel()
+    positions = []
+    for index, (ds, dn) in enumerate(CORNERS):
+        corner = np.asarray(transform_local(pose, ds, dn)).ravel()
+        # Move the corner onto the offset the model predicts, along the
+        # reference-line normal at its own longitudinal station.
+        station = np.asarray(road.pose(corner[0], 0.0, 0.0)).ravel()
+        normal = np.array([-np.sin(station[2]), np.cos(station[2])])
+        positions.append(corner[:2] + (offsets[index] - dn) * normal)
+    return np.asarray(positions)
+
+
 def sweep(kappa, alphas, segments_list, samples, frozen_heading=False):
     road = CircularRoad(kappa, 8.5)
     rows = []
     for segments in segments_list:
         errors = {name: [] for name in NAMES}
+        lateral = {name: [] for name in NAMES}
         for alpha in alphas:
             for s in np.linspace(0.0, 40.0, samples):
                 n = 1.0 + 0.02 * s
@@ -82,8 +103,19 @@ def sweep(kappa, alphas, segments_list, samples, frozen_heading=False):
                 predicted = predicted_offsets(
                     s, n, alpha, road, segments, frozen_heading
                 )
+                # The error of Eq. (lateral_error) is on the position vector.
+                exact_positions = corner_positions(s, n, alpha, road, exact)
+                predicted_positions = corner_positions(
+                    s, n, alpha, road, predicted
+                )
+                distances = np.linalg.norm(
+                    predicted_positions - exact_positions, axis=1
+                )
                 for index, name in enumerate(NAMES):
-                    errors[name].append(float(abs(exact[index] - predicted[index])))
+                    errors[name].append(float(distances[index]))
+                    lateral[name].append(
+                        float(abs(exact[index] - predicted[index]))
+                    )
         rows.append(
             {
                 "n_disc": segments,
@@ -91,6 +123,12 @@ def sweep(kappa, alphas, segments_list, samples, frozen_heading=False):
                 "frozen_heading": frozen_heading,
                 **{
                     f"rmse_{name.lower()}": float(np.sqrt(np.mean(np.square(errors[name]))))
+                    for name in NAMES
+                },
+                **{
+                    f"lateral_rmse_{name.lower()}": float(
+                        np.sqrt(np.mean(np.square(lateral[name])))
+                    )
                     for name in NAMES
                 },
                 "rmse_max": float(

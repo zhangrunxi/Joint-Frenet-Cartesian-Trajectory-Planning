@@ -22,5 +22,15 @@ results/**/*.json
 !results/**/cases.json
 !results/**/*.png
 
+# The archived benchmark runs are exceptions: their per-method statistics are
+# the evidence the reviewer response quotes, and the archive was reduced to
+# those statistics precisely so that they can be checked. The trajectory
+# fields were dropped by scripts/archive_benchmark_statistics.py.
+!results/archived/random_benchmark/**/*.json
+!results/archived/random_benchmark_overtake/**/*.json
+!results/archived/random_benchmark_pre_correction/**/*.json
+!results/archived/random_benchmark_overtake_pre_correction/**/*.json
+!results/archived/contour_accuracy/**/*.json
+
 # copyrighted papers are not redistributed
 sources/*.pdf
