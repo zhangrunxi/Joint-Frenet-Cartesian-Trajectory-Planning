@@ -83,10 +83,36 @@ ABLATION_METHODS = [
 ]
 
 
+# The bus half width is 1.15 m and the road margin is 0.2 m, so the rear-axle
+# reference point may sit at most half_width - 1.35 m from the centre line.
+BODY_HALF_WIDTH = 1.15
+ROAD_MARGIN = 0.20
+# The lateral acceleration limit of Eq. (34f) is 5 m/s^2. A case is only
+# generated when the initial state satisfies it with a margin, so that an
+# infeasible first frame cannot be mistaken for a planner failure.
+MAX_LATERAL_ACCELERATION = 5.0
+LATERAL_ACCELERATION_MARGIN = 0.5
+
+
 def build_cases(protocol):
+    """Generate the frozen case list.
+
+    Two properties are enforced for every case, because a case that violates
+    them measures the scenario generator rather than the planner:
+
+    * the initial state satisfies the lateral acceleration bound of Eq. (34f),
+      v0^2 * |kappa| <= 5 - 0.5 m/s^2, so the first frame is feasible;
+    * on the overtaking task the ego vehicle is faster than the obstacle by at
+      least 1.5 m/s, so the overtake is dynamically possible at all.
+    """
     rng = np.random.default_rng(protocol["seed"])
     cases = []
-    for index in range(protocol["cases"]):
+    index = 0
+    attempts = 0
+    while index < protocol["cases"]:
+        attempts += 1
+        if attempts > 1000 * protocol["cases"]:
+            raise RuntimeError("could not generate feasible cases")
         half_width = float(rng.choice(protocol["half_width_m"]))
         if protocol.get("task") == "overtake":
             side = float(rng.choice([-1.0, 1.0]))
@@ -101,6 +127,13 @@ def build_cases(protocol):
         obstacle_start = float(rng.choice(protocol["obstacle_start_m"]))
         obstacle_speed = float(rng.choice(protocol["obstacle_speed_mps"]))
         initial_speed = float(rng.choice(protocol["initial_speed_mps"]))
+
+        lateral_acceleration = initial_speed**2 * abs(kappa)
+        if lateral_acceleration > MAX_LATERAL_ACCELERATION - LATERAL_ACCELERATION_MARGIN:
+            continue
+        if protocol.get("task") == "overtake" and initial_speed < obstacle_speed + 1.5:
+            continue
+
         cases.append(
             {
                 "case_id": index,
@@ -112,6 +145,7 @@ def build_cases(protocol):
                 "initial_speed": initial_speed,
             }
         )
+        index += 1
     return cases
 
 
