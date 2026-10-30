@@ -72,9 +72,11 @@ the proposed one does not.
 
 The case where the proposed method lost to Xing disappears once the first
 frame starts from a guess that does not pass through the obstacle: the
-proposed model then passes every case that Xing passes. The harmonized guess
-helps the conservative Reiter ellipse more than it helps the proposed model
-(2 to 10 of 72 against 41 to 52 of 72), so it does not flatter us.
+proposed model then passes every case that Xing passes. The shared guess and
+acceptance rule help both sides: on the bus they move the Reiter ellipse from
+2 to 10 of 72 and the proposed model from 42 (node-0 repair only) to 52 of 72.
+The proposed model gains more in absolute terms, which is why the harmonized
+set is reported as a sensitivity result and not as the main table.
 
 What the tables do and do not say:
 
@@ -140,15 +142,15 @@ ten segments instead of five (`_ndisc10/`) recovers most of it:
 
 | Vehicle | N_disc | Completed | Curb strikes | Smallest clearance | Cases below 0.19 m |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Bus | 5 | 32/32 | 0 | 0.125 m | 8 |
-| Bus | 10 | 32/32 | 0 | **0.182 m** | 8 |
-| SUV | 5 | 28/32 | 0 | 0.146 m | 8 |
-| SUV | 10 | 28/32 | 0 | **0.188 m** | 8 |
+| Bus | 5 | 32/32 | 0 | 0.125 m | 32 |
+| Bus | 10 | 32/32 | 0 | **0.182 m** | **8** |
+| SUV | 5 | 28/32 | 0 | 0.146 m | 24 |
+| SUV | 10 | 28/32 | 0 | **0.188 m** | **8** |
 
-The margin violation count does not change, but the worst case improves by
-0.057 m for the bus and 0.042 m for the SUV. The eight cases remain the
-three-curve cases whose physical clearance is limited by the road itself
-rather than by the contour error.
+With ten segments the worst case improves by 0.057 m for the bus and 0.042 m
+for the SUV, and the cases below 0.19 m fall from 32 to 8 (bus) and from 24
+to 8 (SUV). The remaining eight per vehicle are cases 4–7 and 12–15, at most
+0.008 m below the threshold.
 
 ## Re-running it
 
