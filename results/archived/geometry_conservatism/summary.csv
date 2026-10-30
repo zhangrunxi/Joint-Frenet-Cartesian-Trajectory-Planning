@@ -1,0 +1,4 @@
+model,grid_points,oracle_safe_points,accepted_points,unsafe_accepted_points,safe_rejected_points,safe_rejected_fraction,same_s_lateral_threshold_m
+hybrid,135161,108732,103820,0,4912,0.04517529338189309,2.9763455967290664
+circles,135161,108732,97340,0,11392,0.104771364455726,3.452691193458124
+ellipse,135161,108732,80546,0,28186,0.2592245153220763,5.273808431916702

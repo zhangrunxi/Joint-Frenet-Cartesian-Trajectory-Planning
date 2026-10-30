@@ -1,0 +1,49 @@
+{
+  "geometry": "6.5 x 2.3 m aligned identical rectangles, rear axle +2.25 m center",
+  "oracle": "hypot(max(abs(ds)-6.5,0),max(abs(dn)-2.3,0)) >= 0.2",
+  "grid": {
+    "ds": [
+      -12,
+      12
+    ],
+    "dn": [
+      -7,
+      7
+    ],
+    "spacing_m": 0.05,
+    "points": 135161
+  },
+  "limitations": "One relative heading only; finite-domain grid fractions, not probabilities or continuous guarantees.",
+  "results": [
+    {
+      "model": "hybrid",
+      "grid_points": 135161,
+      "oracle_safe_points": 108732,
+      "accepted_points": 103820,
+      "unsafe_accepted_points": 0,
+      "safe_rejected_points": 4912,
+      "safe_rejected_fraction": 0.04517529338189309,
+      "same_s_lateral_threshold_m": 2.9763455967290664
+    },
+    {
+      "model": "circles",
+      "grid_points": 135161,
+      "oracle_safe_points": 108732,
+      "accepted_points": 97340,
+      "unsafe_accepted_points": 0,
+      "safe_rejected_points": 11392,
+      "safe_rejected_fraction": 0.104771364455726,
+      "same_s_lateral_threshold_m": 3.452691193458124
+    },
+    {
+      "model": "ellipse",
+      "grid_points": 135161,
+      "oracle_safe_points": 108732,
+      "accepted_points": 80546,
+      "unsafe_accepted_points": 0,
+      "safe_rejected_points": 28186,
+      "safe_rejected_fraction": 0.2592245153220763,
+      "same_s_lateral_threshold_m": 5.273808431916702
+    }
+  ]
+}

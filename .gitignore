@@ -1,0 +1,26 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+
+# acados / generated solver artifacts
+vendor/acados/lib/
+vendor/acados/c_generated_code/
+**/build/
+**/ocp.json
+*.dylib
+*.so
+
+# archived results are large; the summary tables and figures are kept
+results/**/*.json
+!results/**/summary.json
+!results/**/summary.csv
+!results/**/provenance.json
+!results/**/protocol.json
+!results/**/cases.json
+!results/**/*.png
+
+# copyrighted papers are not redistributed
+sources/*.pdf

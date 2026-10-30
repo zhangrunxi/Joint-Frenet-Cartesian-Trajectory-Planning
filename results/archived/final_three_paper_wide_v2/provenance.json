@@ -1,0 +1,36 @@
+{
+  "command": [
+    "scripts/run_final_comparison.py",
+    "--steps",
+    "120",
+    "--output",
+    "results/final_three_paper_wide_v2"
+  ],
+  "python": "3.11.15 (main, Mar  3 2026, 15:47:15) [Clang 21.1.4 ]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "casadi": "3.8.1",
+  "numpy": "2.4.6",
+  "osqp": "1.0.5",
+  "sha256": {
+    "paper_comparison/xing2022.py": "489c3ba2bfe4156fe05530e7d016eb97a078ddf84acafa4b3ff57ab46797a926",
+    "paper_comparison/joint_linear_proxy.py": "6f7069c612a692585f5d0c45cb8b682d83eb0a008f4a7b944af2097ef1ee85a8",
+    "paper_comparison/evaluation.py": "258fda917096c5e98981a81841d32367e701da33c0ae86101b09e7e8ca992be5",
+    "paper_comparison/__init__.py": "370fd106c02673d4af0f709f7106b9fca3c6badf5f050230a924e4b6882645c5",
+    "paper_comparison/model.py": "a9008f8337c0364ad01b3e82df6f6c4e375571148806fdf0f53e5d3d92b9a6f1",
+    "paper_comparison/cilqr.py": "71fce9ae944e84cee73ebd701451c3ed88aab7b14d3d5240e47f7c09d6ab9dc9",
+    "reiter2023/trajectory_planner_acados_20222.py": "7251ac303d0ba0e2d30d1ebf078739390700748339436e5011501a00c5cedef0",
+    "reiter2023/__init__.py": "601a41186c9900b9338e2be3696dc072ee7eaeb7d249cb018a319e15d86c3967",
+    "reiter2023/geometry.py": "01ab7b7ee5784716ebffe6e1d651a35c12db159cf80742fd75f6597ff9c22268",
+    "scripts/run_paper_comparison.py": "9983093faefb90ec581bfc645b06e7e3924c7beeb7a86f3d9cb72db88504ebea",
+    "scripts/run_final_comparison.py": "22c0551680cdf4ff64539adb7fb96fb58941ce587878ea27cb60a7f71fb4be16"
+  },
+  "xing_paper_sha256": "197607c3606b992f2111bd32beeb9a59351031116403383185b0f35ff78c4825",
+  "thread_environment": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "all_calls_sequential": true,
+  "source_verified_equation_reconstruction": true,
+  "author_implementation": false
+}

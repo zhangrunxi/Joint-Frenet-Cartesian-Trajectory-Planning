@@ -1,0 +1,9 @@
+[submodule "vendor/obstacle_avoidance"]
+	path = vendor/obstacle_avoidance
+	url = https://github.com/RudolfReiter/obstacle_avoidance.git
+[submodule "vendor/vehicle_gym"]
+	path = vendor/vehicle_gym
+	url = https://github.com/RudolfReiter/vehicle_gym.git
+[submodule "vendor/acados"]
+	path = vendor/acados
+	url = https://github.com/acados/acados.git

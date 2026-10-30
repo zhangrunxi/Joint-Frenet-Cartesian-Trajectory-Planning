@@ -1,0 +1,12 @@
+{
+  "command": "ACADOS_SOURCE_DIR=\"$PWD/vendor/acados\" DYLD_LIBRARY_PATH=\"$PWD/vendor/acados/lib\" .venv/bin/python scripts/measure_geometry_conservatism.py",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "numpy": "2.4.6",
+  "casadi": "3.8.1",
+  "sha256": {
+    "scripts/measure_geometry_conservatism.py": "c30e0ac8fc06e4cc5edc6d2cf0d44873799989e36e012e94ffe80ba024fee137",
+    "paper_comparison/model.py": "a9008f8337c0364ad01b3e82df6f6c4e375571148806fdf0f53e5d3d92b9a6f1",
+    "reiter2023/geometry.py": "01ab7b7ee5784716ebffe6e1d651a35c12db159cf80742fd75f6597ff9c22268"
+  },
+  "measurement_type": "deterministic finite-grid geometry, no MPC timing"
+}
