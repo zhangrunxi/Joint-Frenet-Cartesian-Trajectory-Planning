@@ -28,7 +28,19 @@ def functions():
     circle = ca.vertcat(
         *[ca.sqrt(ca.sumsqr(a - b) + 1e-16) - ra - rb - 0.2 for a in aa for b in bb]
     )
+    aa5, ra5 = covering_circles(gym_pose(pose), v, 5)
+    bb5, rb5 = covering_circles(gym_pose(other), v, 5)
+    circle5 = ca.vertcat(
+        *[
+            ca.sqrt(ca.sumsqr(a - b) + 1e-16) - ra5 - rb5 - 0.2
+            for a in aa5
+            for b in bb5
+        ]
+    )
     return {
+        "circles5": ca.Function(
+            "circles5_grid", [pose], [ca.mmin(circle5)]
+        ),
         "hybrid": ca.Function(
             "hybrid_grid", [pose], [ca.mmin(hybrid_constraints(pose, other, 0.2))]
         ),
@@ -81,7 +93,11 @@ def main():
                 lo = middle
         row["same_s_lateral_threshold_m"] = hi
         rows.append(row)
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.6), sharex=True, sharey=True)
+    columns = len(masks)
+    fig, axes = plt.subplots(
+        1, columns, figsize=(5 * columns, 4.6), sharex=True, sharey=True
+    )
+    axes = np.atleast_1d(axes)
     for ax, (name, accepted) in zip(axes, masks.items()):
         # 0=unsafe oracle,1=safe but representation rejects,2=accepted safe.
         image = np.where(safe, np.where(accepted, 2, 1), 0)

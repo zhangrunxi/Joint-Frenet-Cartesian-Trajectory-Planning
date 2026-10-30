@@ -113,6 +113,21 @@ def hybrid_parts(pose):
     return a, b, 2.3 / 2, circles, np.sqrt(2) * 2.3 / 4
 
 
+def capsule_distance(pose, other_pose, margin):
+    """Equation (23): the sufficient safety condition between two capsules.
+
+    The safety condition of the manuscript is the minimum distance between the
+    two continuous capsule sets, d_min = min_{c1 in Omega_1, c2 in Omega_2}
+    ||c1 - c2||, with safety guaranteed when d_min > r1 + r2. Because the
+    capsules are continuous, this single condition separates the two bodies
+    regardless of where the closest pair lies, which is what makes the
+    pruning of Section 5.2 safe.
+    """
+    a, b, r, _, _ = hybrid_parts(pose)
+    c, d, q, _, _ = hybrid_parts(other_pose)
+    return ca.sqrt(segment_squared(a, b, c, d) + 1e-16) - r - q - margin
+
+
 def hybrid_component_distances(pose, other_pose, margin):
     """The 25 capsule/circle component-pair distances, in a fixed order.
 
@@ -139,14 +154,35 @@ def hybrid_constraints(pose, other_pose, margin):
     return ca.vertcat(*hybrid_component_distances(pose, other_pose, margin))
 
 
-def select_component(values, index):
-    """Pick one component distance by index, keeping the expression smooth in
-    the state and non-smooth only in the index."""
+def select_component(values, indices):
+    """Constraint value of the components named by ``indices``.
+
+    ``indices`` is a list of component indices. For every index the matching
+    component distance is selected with a comparison chain, which keeps the
+    expression smooth in the state and makes it non-smooth only in the
+    discrete index, exactly as the manuscript's pruning description implies.
+    The constraint is the minimum over the selected components, so the
+    strictest of the retained pairs is enforced.
+    """
+    indices = list(indices)
+    if len(indices) == 1:
+        index = indices[0]
+        selected = values[0]
+        for position in range(1, len(values)):
+            selected = ca.if_else(
+                ca.eq(index, position), values[position], selected
+            )
+        return selected
+
+    count = len(values)
     selected = values[0]
-    for position in range(1, len(values)):
-        selected = ca.if_else(
-            ca.eq(index, position), values[position], selected
-        )
+    for index in indices:
+        candidate = values[0]
+        for position in range(1, count):
+            candidate = ca.if_else(
+                ca.eq(index, position), values[position], candidate
+            )
+        selected = ca.fmin(selected, candidate)
     return selected
 
 
@@ -186,6 +222,9 @@ class PaperModel:
         circle_count=3,
         pruned=False,
         n_disc=5,
+        kappa_as_state=True,
+        prune_keep=1,
+        obstacle_constraint="components",
     ):
         self.road, self.settings = road, settings or Settings()
         self.lifted, self.obstacle = lifted, obstacle
@@ -193,6 +232,16 @@ class PaperModel:
         self.circle_count = circle_count
         self.pruned = pruned
         self.n_disc = n_disc
+        # When False the sixth state holds the steering angle instead of the
+        # curvature, and the curvature follows from the kinematic relation
+        # kappa = delta / l_wb. This is the ablation reviewer 2.7 asks for.
+        self.kappa_as_state = kappa_as_state
+        # Number of component pairs kept by the hierarchical pruning.
+        self.prune_keep = prune_keep
+        # "components" checks every capsule/circle pair; "capsule" uses the
+        # sufficient condition of Eq. (23), which is the manuscript's own
+        # formulation and is the weaker of the two.
+        self.obstacle_constraint = obstacle_constraint
         self.nx, self.nu = (9 if lifted else 6), 2
         self.N, self.dt = self.settings.intervals, self.settings.dt
         self.vehicle = bus_vehicle()
@@ -203,19 +252,30 @@ class PaperModel:
         x, u = ca.MX.sym("x", self.nx), ca.MX.sym("u", 2)
         # Three obstacle pose parameters plus moving s/d/v targets, plus the
         # pruned component index when the manuscript's pruning strategy is used.
-        p = ca.MX.sym("p", 7 if self.pruned else 6)
-        s, n, alpha, v, a, curvature = (x[i] for i in range(6))
+        p = ca.MX.sym("p", 6 + self.prune_keep if self.pruned else 6)
+        s, n, alpha, v, a, sixth = (x[i] for i in range(6))
+        if self.kappa_as_state:
+            curvature = sixth
+        else:
+            # Steering angle as the state; curvature follows from kappa = d/l_wb.
+            curvature = sixth / self.vehicle.length
         pose_from_frenet = self.road.pose(s, n, alpha)
         pose = x[6:9] if self.lifted else pose_from_frenet
         den = 1 - n * self.road.curvature(s)
         sd = v * ca.cos(alpha) / den
+        if self.kappa_as_state:
+            sixth_rate = u[1]
+        else:
+            # The control is now the steering rate, so the steering angle
+            # integrates directly.
+            sixth_rate = u[1]
         rhs = [
             sd,
             v * ca.sin(alpha),
             v * curvature - self.road.curvature(s) * sd,
             a,
             u[0],
-            u[1],
+            sixth_rate,
         ]
         if self.lifted:
             rhs += [v * ca.cos(pose[2]), v * ca.sin(pose[2]), v * curvature]
@@ -235,7 +295,11 @@ class PaperModel:
             [x, u],
             [ca.jacobian(self.step(x, u), x), ca.jacobian(self.step(x, u), u)],
         )
-        if self.obstacle == "HYBRID":
+        if self.obstacle == "HYBRID" and self.obstacle_constraint == "capsule":
+            obs = ca.vertcat(
+                capsule_distance(pose, p[:3], opts.obstacle_margin)
+            )
+        elif self.obstacle == "HYBRID":
             if self.pruned:
                 # Manuscript Section 5.2: keep only the corrected nearest pair.
                 obs = ca.vertcat(
@@ -243,7 +307,7 @@ class PaperModel:
                         hybrid_component_distances(
                             pose, p[:3], opts.obstacle_margin
                         ),
-                        p[6],
+                        [p[6 + offset] for offset in range(self.prune_keep)],
                     )
                 )
             else:
@@ -271,8 +335,14 @@ class PaperModel:
             frozen_heading=self.frozen_heading,
         )
         alat = v**2 * curvature
-        jlat = 2 * v * a * curvature + v**2 * u[1]
-        steering_rate = vehicle.length * u[1] / (1 + (vehicle.length * curvature) ** 2)
+        if self.kappa_as_state:
+            curvature_rate = u[1]
+        else:
+            curvature_rate = u[1] / vehicle.length
+        jlat = 2 * v * a * curvature + v**2 * curvature_rate
+        steering_rate = vehicle.length * curvature_rate / (
+            1 + (vehicle.length * curvature) ** 2
+        )
         self.h = ca.vertcat(alat, jlat, steering_rate, den, offsets, obs)
         width = self.road.half_width - opts.road_margin
         self.hl = np.r_[
@@ -300,41 +370,46 @@ class PaperModel:
             v - p[5],
             a,
             curvature,
-            u[1],
+            curvature_rate,
             u[0],
             alat,
             jlat,
         )
         self.residual = residual
         self.terminal_residual = ca.substitute(residual[:6], u, ca.DM.zeros(2))
-        self.cost = ca.dot(ca.DM(opts.weights) * residual, residual) * self.dt
+        weights = np.asarray(opts.weights, dtype=float)
+        if not self.kappa_as_state:
+            # u[1] is the steering rate here; the curvature rate is u[1]/l_wb.
+            # Rescale so the residual penalises the same physical quantity.
+            weights[6] *= vehicle.length**2
+        self.cost = ca.dot(ca.DM(weights) * residual, residual) * self.dt
         self.terminal_cost = ca.dot(
             ca.DM(opts.terminal_weights) * self.terminal_residual,
             self.terminal_residual,
         )
         self.state_indices = np.array([2, 3, 4, 5])
-        self.xl = np.array(
-            [
-                -0.65,
-                0,
-                opts.min_acc,
-                -np.tan(vehicle.maximum_steering_angle) / vehicle.length,
-            ]
+        sixth_low = (
+            -np.tan(vehicle.maximum_steering_angle) / vehicle.length
+            if self.kappa_as_state
+            else -vehicle.maximum_steering_angle
         )
-        self.xu = np.array(
-            [
-                0.65,
-                opts.max_speed,
-                opts.max_acc,
-                np.tan(vehicle.maximum_steering_angle) / vehicle.length,
-            ]
+        sixth_high = (
+            np.tan(vehicle.maximum_steering_angle) / vehicle.length
+            if self.kappa_as_state
+            else vehicle.maximum_steering_angle
         )
+        self.xl = np.array([-0.65, 0, opts.min_acc, sixth_low])
+        self.xu = np.array([0.65, opts.max_speed, opts.max_acc, sixth_high])
         # Physical steering-rate constraint above is state dependent; this box is redundant.
         max_kr = (
             vehicle.maximum_steering_rate
             / vehicle.length
             * (1 + np.tan(vehicle.maximum_steering_angle) ** 2)
         )
+        if not self.kappa_as_state:
+            # The control is the steering rate directly; the curvature rate
+            # follows from kappa = delta / l_wb.
+            max_kr = vehicle.maximum_steering_rate
         self.ul, self.uu = (
             np.array([-opts.max_jerk, -max_kr]),
             np.array([opts.max_jerk, max_kr]),
@@ -349,7 +424,9 @@ class PaperModel:
         self.gfun = ca.Function("gfun", [x, u, p], [g])
 
     def initial(self, speed=12.0):
-        state = np.array([0, 0, 0, speed, 0, self.road.kappa])
+        curvature = self.road.kappa
+        sixth = curvature if self.kappa_as_state else curvature * self.vehicle.length
+        state = np.array([0, 0, 0, speed, 0, sixth])
         return self.augment(state)
 
     def augment(self, state):
@@ -371,9 +448,31 @@ class PaperModel:
             for k, t in enumerate(times)
         ]
         if self.pruned:
-            # The index column is filled in by the planner before each solve.
-            rows = [np.r_[row, 0.0] for row in rows]
+            # The index columns are filled in by the planner before each solve.
+            rows = [
+                np.r_[row, np.zeros(self.prune_keep)] for row in rows
+            ]
         return np.array(rows)
+
+    def full_obstacle_violation(self, X, P):
+        """Largest overlap over all component pairs, ignoring the pruning.
+
+        The pruned variant only constrains the retained pairs, so a trajectory
+        can satisfy the constraint it was given and still overlap on a pair
+        that was dropped. This evaluation is the independent check that the
+        pruning did not lose a collision.
+        """
+        worst = 0.0
+        for k in range(self.N + 1):
+            if self.lifted:
+                pose = np.array(X[k][6:9], dtype=float)
+            else:
+                pose = np.asarray(self.road.pose(X[k][0], X[k][1], X[k][2])).ravel()
+            for value in hybrid_component_distances(
+                pose, P[k][:3], self.settings.obstacle_margin
+            ):
+                worst = max(worst, -float(ca.evalf(value)))
+        return worst
 
     def violation(self, X, U, P, initial):
         if not np.isfinite(X).all() or not np.isfinite(U).all():
@@ -381,6 +480,7 @@ class PaperModel:
                 "max_violation": 1e30,
                 "dynamics_defect": 1e30,
                 "coordinate_error": 1e30,
+                "full_obstacle_violation": 1e30,
             }
         violation = max(0.0, float(np.max(self.ul - U)), float(np.max(U - self.uu)))
         for k in range(self.N + 1):
@@ -399,12 +499,21 @@ class PaperModel:
             if self.lifted
             else 0.0
         )
+        full_obstacle = (
+            self.full_obstacle_violation(X, P)
+            if self.pruned
+            else 0.0
+        )
         return {
             "max_violation": max(
-                violation, defect, float(np.max(np.abs(X[0] - initial)))
+                violation,
+                defect,
+                float(np.max(np.abs(X[0] - initial))),
+                full_obstacle,
             ),
             "dynamics_defect": defect,
             "coordinate_error": coordinate_error,
+            "full_obstacle_violation": full_obstacle,
         }
 
 
@@ -438,7 +547,8 @@ class AcadosPaperPlanner:
         ocp.constraints.uh = ocp.constraints.uh_e = m.hu
         ocp.constraints.x0 = m.initial()
         ocp.parameter_values = np.r_[
-            1000, 0, 0, 0, m.settings.lateral, m.settings.speed
+            1000, 0, 0, 0, m.settings.lateral, m.settings.speed,
+            np.zeros(max(0, int(m.p.numel()) - 6)),
         ]
         so = ocp.solver_options
         so.N_horizon, so.tf = m.N, m.N * m.dt
@@ -467,29 +577,40 @@ class AcadosPaperPlanner:
         the index exactly as in the manuscript's description.
         """
         m = self.model
-        poses = (
-            self.X[:, :3]
-            if self.X is not None
-            else np.array(
+        if self.X is not None:
+            # The previous solution holds the Cartesian pose of the lifted
+            # state, or the Frenet state itself for the six-state model.
+            poses = self.X[:, :3]
+        else:
+            # Before the first solve, extrapolate the Frenet state along the
+            # planned speed; the obstacle poses come from the parameters.
+            initial_s = float(parameters[0][3])
+            poses = np.array(
                 [
-                    np.asarray(
-                        m.road.numeric_pose(
-                            [initial_s + k * m.dt * m.settings.speed, m.settings.lateral, 0.0]
-                        )
-                    ).ravel()
+                    [
+                        initial_s + k * m.dt * m.settings.speed,
+                        m.settings.lateral,
+                        0.0,
+                    ]
                     for k in range(m.N + 1)
                 ]
             )
-        )
         indices = []
         for k in range(m.N + 1):
-            ego = m.road.pose(poses[k, 0], poses[k, 1], poses[k, 2])
+            if m.lifted:
+                # The lifted state carries the Cartesian pose directly.
+                ego = np.array(poses[k][:3], dtype=float)
+            else:
+                ego = m.road.pose(poses[k, 0], poses[k, 1], poses[k, 2])
             values = []
             for value in hybrid_component_distances(
                 ego, parameters[k][:3], m.settings.obstacle_margin
             ):
                 values.append(float(ca.evalf(value)))
-            indices.append(int(np.argmin(values)))
+            order = np.argsort(values)
+            indices.append(
+                [int(index) for index in order[: max(1, m.prune_keep)]]
+            )
         return indices
 
     def solve(self, initial, parameters):
@@ -508,7 +629,7 @@ class AcadosPaperPlanner:
             indices = self.pruning_indices(parameters)
             parameters = np.array(
                 [
-                    np.r_[row[:6], index]
+                    np.r_[row[:6], np.asarray(index, dtype=float)]
                     for row, index in zip(parameters, indices)
                 ]
             )
@@ -519,6 +640,30 @@ class AcadosPaperPlanner:
         wall_ms = (perf_counter() - start) * 1000
         self.X = np.array([self.solver.get(k, "x") for k in range(m.N + 1)])
         self.U = np.array([self.solver.get(k, "u") for k in range(m.N)])
+
+        if m.pruned and m.prune_keep <= 1:
+            # The manuscript switches the retained component pair with the
+            # location of the closest pair, so the index has to follow the
+            # trajectory. acados cannot change parameters inside a solve, so
+            # the selection is redone on the trajectory just computed and the
+            # problem is solved again with the updated indices.
+            updated = self.pruning_indices(parameters)
+            current = [list(map(int, row[6:])) for row in parameters]
+            if updated != current:
+                parameters = np.array(
+                    [
+                        np.r_[row[:6], np.asarray(index, dtype=float)]
+                        for row, index in zip(parameters, updated)
+                    ]
+                )
+                for k in range(m.N + 1):
+                    self.solver.set(k, "p", parameters[k])
+                status = int(self.solver.solve())
+                native_ms += float(self.solver.get_stats("time_tot")) * 1000
+                wall_ms = (perf_counter() - start) * 1000
+                self.X = np.array([self.solver.get(k, "x") for k in range(m.N + 1)])
+                self.U = np.array([self.solver.get(k, "u") for k in range(m.N)])
+
         diagnostics = m.violation(self.X, self.U, parameters, initial)
         self.solver_iterations = int(self.solver.get_stats("sqp_iter"))
         return dict(

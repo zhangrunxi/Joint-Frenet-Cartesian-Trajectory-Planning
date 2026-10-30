@@ -24,11 +24,16 @@ rm -rf "$TARGET/tests" "$TARGET/scripts"
 cp -R "$SOURCE/tests" "$TARGET/tests"
 cp -R "$SOURCE/scripts" "$TARGET/scripts"
 chmod +x "$TARGET/scripts"/*.sh
-cp "$SOURCE/RANDOM_BENCHMARK_PROTOCOL.md" "$TARGET/docs/"
-for doc in FINAL_COMPARISON_REPORT.md ACCEPTANCE_REPORT.md AUDIT_FINDINGS.md RECONSTRUCTION.md; do
-  [ -f "$SOURCE/$doc" ] && cp "$SOURCE/$doc" "$TARGET/docs/"
-done
 cp "$SOURCE/requirements-comparison.lock" "$TARGET/"
+
+# The documentation in docs/ is the English text of the public repository and
+# is the single source of truth for it. The working experiment directory keeps
+# the Chinese originals under docs/zh/, which are refreshed from the source
+# directory here; the English files are never overwritten by a sync.
+mkdir -p "$TARGET/docs/zh"
+for doc in FINAL_COMPARISON_REPORT.md ACCEPTANCE_REPORT.md AUDIT_FINDINGS.md RECONSTRUCTION.md RANDOM_BENCHMARK_PROTOCOL.md; do
+  [ -f "$SOURCE/$doc" ] && cp "$SOURCE/$doc" "$TARGET/docs/zh/$doc"
+done
 
 # The paper PDFs are copyrighted and are not redistributed. Make the three
 # references to them optional so the runners work without the PDFs.

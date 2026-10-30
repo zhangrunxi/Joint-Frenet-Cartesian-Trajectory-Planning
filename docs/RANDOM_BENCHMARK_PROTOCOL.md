@@ -1,105 +1,102 @@
-# 随机场景批量实验协议（冻结于运行之前）
+# Protocol for Batch Experiments on Random Scenarios (Frozen Before the Runs)
 
-本文件在运行 `scripts/run_random_benchmark.py` 之前写定，用于回应评审意见 3
-（“每个比较只依赖一个手工挑选的场景；应当在大规模抽取的场景集上报告
-净空、违规率、求解时间与失败率的分布”）。
+This file was written before running `scripts/run_random_benchmark.py`, and serves to answer reviewer comment 3
+("each comparison relies on only a single hand-picked scenario; the distributions of clearance, violation rate, solve time, and failure
+rate should be reported over a large set of randomly sampled scenarios").
 
-## 1. 场景生成
+## 1. Scenario Generation
 
-场景列表由固定种子 `20261030` 的 `numpy` 生成器决定，生成逻辑完全写在
-`scripts/run_random_benchmark.py::build_cases` 中，可独立复算。共 40 个场景，
-每个场景的全部方法共享同一道路、同一障碍物预测、同一目标横向位置与同一预测时域。
+The scenario list is determined by the `numpy` generator with the fixed seed `20261030`, and the generation logic is written entirely in
+`scripts/run_random_benchmark.py::build_cases`, so it can be independently recomputed. There are 40 scenarios in total, and in each
+scenario all methods share the same road, the same obstacle prediction, the same target lateral position, and the same prediction horizon.
 
-抽样取值：
+The sampled values:
 
-| 参数 | 取值集合 |
+| Parameter | Value set |
 | --- | --- |
-| 道路半宽 | 4.6 m / 8.5 m |
-| 横向目标位置 | −2.0 / −1.0 / 0.0 / 1.0 / 2.0 m（相对道路中心线，按道路半宽裁剪到路内） |
-| 道路曲率 | −1/40 / 0 / 1/60 / 1/35 m⁻¹ |
-| 障碍物起始 s | 25 / 35 / 50 m |
-| 障碍物速度 | 6 / 8 / 11 m/s |
-| 初速度 | 8 / 12 / 15 m/s |
+| Road half-width | 4.6 m / 8.5 m |
+| Lateral target position | −2.0 / −1.0 / 0.0 / 1.0 / 2.0 m (relative to the road centerline, clipped into the road by the road half-width) |
+| Road curvature | −1/40 / 0 / 1/60 / 1/35 m⁻¹ |
+| Obstacle starting s | 25 / 35 / 50 m |
+| Obstacle speed | 6 / 8 / 11 m/s |
+| Initial speed | 8 / 12 / 15 m/s |
 
-每场景 120 步、dt = 0.1 s、N = 40、预测 4 s、闭环 12 s。车辆为 6.50 m × 2.30 m、
-轴距 4.32 m、后悬 1.00 m 的公交车。
+Each scenario has 120 steps, dt = 0.1 s, N = 40, 4 s prediction, 12 s closed loop. The vehicle is a bus of 6.50 m × 2.30 m,
+with a wheelbase of 4.32 m and a rear overhang of 1.00 m.
 
-## 2. 方法与消融
+## 2. Methods and Ablations
 
-每个场景运行 12 个配置：本文 4 个（hybrid SQP 六状态、hybrid SQP 九状态、
-circles SQP 六状态、hybrid AL-CiLQR 六状态）、Reiter 4 个（Direct/Lifted ×
-ellipse/circles）、Xing 2 个（keep-left 走廊、yield 策略消融），外加 2 个道路约束
-消融（`reiter_direct_ellipse_point`、`xing_joint_corridor_point`，使用原文的参考点道路
-约束而非本文的车身轮廓约束）。
+12 configurations are run in each scenario: 4 of this paper (hybrid SQP six-state, hybrid SQP nine-state,
+circles SQP six-state, hybrid AL-CiLQR six-state), 4 of Reiter (Direct/Lifted × ellipse/circles), and 2 of Xing
+(keep-left corridor, yield strategy ablation), plus 2 road-constraint ablations
+(`reiter_direct_ellipse_point`, `xing_joint_corridor_point`, which use the reference-point road constraint of the original texts
+instead of the vehicle-body contour constraint of this paper).
 
-yield 配置与 point 配置都是同一规划器的策略/约束消融，不作为独立算法计数。
+The yield configuration and the point configuration are strategy/constraint ablations of the same planner and are not counted as independent algorithms.
 
-## 3. 记录与失败处理
+## 3. Recording and Failure Handling
 
-记录字段包括：是否完成 120 步、是否发生碰撞或越界、最小障碍物净空、最小道路净空、
-相对障碍物的最终进度、平均/95 分位求解耗时、最大约束违规、横向加速度与加加速度。
+The recorded fields include: whether 120 steps were completed, whether a collision or boundary violation occurred, the minimum obstacle clearance, the minimum road clearance,
+the final progress relative to the obstacle, the mean/95th-percentile solve time, the maximum constraint violation, and the lateral acceleration and jerk.
 
-- 求解中止、约束违规、碰撞或越界一律记为失败，不重试、不丢弃、不改参数后重跑。
-- 异常（抛出异常）同样写入 `results.json` 的 `error` 字段并计入失败率。
-- 中止 case 的预测与控制单独写入 `*_rejected.json`，不丢弃证据。
-- 所有方法顺序执行，数值库线程数为 1。
+- A solver abort, a constraint violation, a collision, or a boundary violation is always recorded as a failure; there is no retry, no discarding, and no re-running with changed parameters.
+- Exceptions (raised exceptions) are likewise written into the `error` field of `results.json` and counted in the failure rate.
+- The predictions and controls of aborted cases are written separately into `*_rejected.json`; no evidence is discarded.
+- All methods run sequentially, with the numerical library thread count set to 1.
 
-## 4. 统计口径
+## 4. Statistical Definitions
 
-按方法聚合：成功率（完成 120 步且无碰撞/越界）、中止率、净空分布（中位数、
-最小值、5 分位）、求解耗时分布、违规率。报告中明确区分：
+Aggregated per method: success rate (completed 120 steps with no collision/boundary violation), abort rate, clearance distribution (median,
+minimum, 5th percentile), solve-time distribution, and violation rate. The report explicitly distinguishes:
 
-- **净空**与**求解耗时**在方法之间可比（同一车辆、同一场景、同一评估器）；
-- **求解耗时**跨后端不可比（acados 原生 vs. Python wall time），只按后端分组报告；
-- 40 个场景是**合成场景集**，不是独立驾驶试验，也不构成统计显著性结论。
+- **Clearance** and **solve time** are comparable across methods (same vehicle, same scenarios, same evaluator);
+- **solve time** is not comparable across backends (native acados vs. Python wall time), and is reported grouped by backend only;
+- the 40 scenarios are a **synthetic scenario set**, not independent driving trials, and do not constitute a statistical significance conclusion.
 
-## 5. 与既有结果的关系
+## 5. Relationship to the Existing Results
 
-横向目标位置在首次试跑中被发现会与窄路半宽组合出位于道路之外的退化场景
-（`lateral=5.5 m` 配 `half_width=4.6 m`），该问题在正式运行前修正：横向目标改为
-从固定偏移集合中抽取，并按道路半宽裁剪到 `|lateral| <= half_width - 1.35 m`
-（车宽一半 1.15 m 加 0.2 m 道路裕量）。协议在修正后重新冻结，种子不变，
-场景列表随之改变。被弃用的试跑结果不纳入任何统计。
+In the first trial run, the lateral target position was found to combine with the narrow-road half-width to produce degenerate scenarios located outside the road
+(`lateral=5.5 m` with `half_width=4.6 m`). This problem was fixed before the formal run: the lateral target is now drawn
+from a fixed offset set and clipped into the road by `|lateral| <= half_width - 1.35 m`
+(half the vehicle width, 1.15 m, plus a road margin of 0.2 m). The protocol was re-frozen after the correction, the seed is unchanged,
+and the scenario list changes accordingly. The discarded trial results are not included in any statistic.
 
-本协议不替代既有的四个手工场景与宽度扫描。那些结果保留为定性示例，本协议提供
-分布层面的证据。若两者结论方向不一致，以分布结果为准并如实报告差异。
+This protocol does not replace the existing four hand-crafted scenarios and the width sweep. Those results are retained as qualitative examples; this protocol provides
+distribution-level evidence. If the two disagree in direction, the distribution results take precedence and the difference must be reported faithfully.
 
-## 6. 场景可行性的判定
+## 6. Criteria for Scenario Feasibility
 
-部分场景在给定初速度与曲率下超出公交车的横向加速度限值
-（`v_initial² · |κ| > 5.0 m/s²`），此时无论采用哪种规划器都不存在满足约束的轨迹。
-这类场景在结果表中单列为 **infeasible scenario**，不计入任何方法的失败率，
-但在表格中保留并注明。协议不因此删除场景：筛选判据是物理可行性，与方法表现无关，
-在运行前即可由场景参数直接判定。
+In some scenarios, the lateral acceleration limit of the bus is exceeded at the given initial speed and curvature
+(`v_initial² · |κ| > 5.0 m/s²`), in which case no trajectory satisfying the constraints exists, regardless of the planner.
+Such scenarios are listed separately in the results table as **infeasible scenario**, are not counted in the failure rate of any method,
+but are retained in the table and annotated. The protocol does not delete them because of this: the screening criterion is physical feasibility, is independent of method performance,
+and can be determined directly from the scenario parameters before the runs.
 
-中止与失败仍按实际发生计入方法自身的统计。
+Aborts and failures are still counted in the method's own statistics according to their actual occurrence.
 
-## 7. 场景类型：一般交通与超越任务
+## 7. Scenario Types: General Traffic and Overtaking Tasks
 
-第一轮（task = general）抽取的横向目标在道路中心线附近，产生的场景多为跟车或
-横向避让，不包含超越任务。这不足以回应评审意见，因为「窄路能否超越」正是
-评审关心的具体场景。
+The lateral targets drawn in the first round (task = general) are near the road centerline, so the resulting scenarios are mostly following or
+lateral avoidance, and do not include overtaking tasks. This is not enough to answer the reviewer, because "can it overtake on a narrow road" is precisely
+the specific scenario the reviewer is concerned about.
 
-因此补充第二轮（task = overtake）：横向目标固定取在障碍物所在位置（n = 0）的对侧，
-`|lateral| = half_width - 1.5 m`，使每个场景都要求规划器绕行超越障碍物。
-其余参数（道路宽度、曲率、障碍物位置与速度、初速度）的抽样方式与第一轮相同，
-种子不变。
+Therefore a second round (task = overtake) was added: the lateral target is fixed on the side opposite the obstacle position (n = 0), with
+`|lateral| = half_width - 1.5 m`, so that every scenario requires the planner to detour around and overtake the obstacle.
+The sampling of the remaining parameters (road width, curvature, obstacle position and speed, initial speed) is the same as in the first round,
+with the seed unchanged.
 
-两轮结果分别报告，不合并成单一成功率。general 轮刻画方法在一般交通下的分布行为，
-overtake 轮刻画方法在必须超越的任务上的分布行为。合并会掩盖两者的差别。
+The results of the two rounds are reported separately and are not merged into a single success rate. The general round characterizes the distributed behaviour of the methods in general traffic,
+and the overtake round characterizes the distributed behaviour of the methods on tasks where overtaking is mandatory. Merging them would hide the difference.
 
-## 8. 关于轮廓消融差异的观察
+## 8. Observation on the Difference in the Contour Ablation
 
-冻结航向偏差与沿轮廓积分航向偏差在窄路、大偏航状态下才产生可观的轮廓偏移差异
-（曲率 1/60 m⁻¹、航向偏差 0.15 rad 时，车身前后角点的横向偏移相差约 0.19 m）。
-在横向目标靠近道路中心、轮廓约束不活跃的场景中，两者的净空统计几乎一致。
-因此轮廓消融的结论应以窄路超越任务那一轮为准，不应从一般交通场景的分布中推断。
+A noticeable difference in contour offset between the frozen heading deviation and the heading deviation integrated along the contour appears only on narrow roads with large yaw states
+(curvature 1/60 m⁻¹ and heading deviation 0.15 rad give a lateral offset difference of about 0.19 m between the front and rear corners of the vehicle body).
+In scenarios where the lateral target is close to the road center and the contour constraint is inactive, their clearance statistics are almost identical.
+The conclusion of the contour ablation should therefore be taken from the narrow-road overtaking round and should not be inferred from the distribution of the general traffic scenarios.
 
-## 9. 剪枝消融
+## 9. Pruning Ablation
 
-新增 `paper6_pruned_sqp`：按论文 Section 5.2 的分层剪枝策略，每个预测步只保留
-最近的一对碰撞分量（落入冗余子胶囊区时替换为角部圆），索引以参数形式在一次求解内
-固定。其余设置与 `paper6_hybrid_sqp` 完全相同，因此两者之差即为剪枝的作用。
+A new `paper6_pruned_sqp` was added: following the hierarchical pruning strategy of Section 5.2 of the paper, only the nearest pair of collision components is kept at each prediction step (replaced by the corner circle when it falls into the redundant sub-capsule region), and the indices are fixed in parameter form within a single solve. All other settings are exactly the same as `paper6_hybrid_sqp`, so the difference between the two is precisely the effect of pruning.
 
-剪枝使约束对离散索引非光滑，这是评审意见 3.10 提出的问题。报告时应同时给出
-两者的安全裕量、成功率与求解耗时，并如实报告剪枝漏掉真正碰撞分量的情形。
+Pruning makes the constraint non-smooth with respect to the discrete indices, which is the issue raised in reviewer comment 3.10. The report should give the safety margin, the success rate, and the solve time of both, and should faithfully report the cases where pruning misses a genuinely colliding component.
