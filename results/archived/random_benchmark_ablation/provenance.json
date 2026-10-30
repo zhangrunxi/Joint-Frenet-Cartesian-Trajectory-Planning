@@ -1,0 +1,35 @@
+{
+  "command": [
+    "scripts/run_random_benchmark.py",
+    "--methods",
+    "paper6_hybrid_sqp",
+    "paper6_frozen_sqp",
+    "paper6_circles_sqp",
+    "paper6_circles5_sqp",
+    "paper6_circlesN3_sqp",
+    "paper6_circlesN5_sqp",
+    "paper6_nokappa_sqp",
+    "paper6_pruned_sqp",
+    "paper6_capsule_sqp",
+    "--output",
+    "results/random_benchmark_ablation_v2"
+  ],
+  "python": "3.11.15 (main, Mar  3 2026, 15:47:15) [Clang 21.1.4 ]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "numpy": "2.4.6",
+  "sha256": {
+    "paper_comparison/__init__.py": "370fd106c02673d4af0f709f7106b9fca3c6badf5f050230a924e4b6882645c5",
+    "paper_comparison/cilqr.py": "71fce9ae944e84cee73ebd701451c3ed88aab7b14d3d5240e47f7c09d6ab9dc9",
+    "paper_comparison/evaluation.py": "258fda917096c5e98981a81841d32367e701da33c0ae86101b09e7e8ca992be5",
+    "paper_comparison/joint_linear_proxy.py": "6f7069c612a692585f5d0c45cb8b682d83eb0a008f4a7b944af2097ef1ee85a8",
+    "paper_comparison/model.py": "388416292fdca4a297cfc96773e4606d277f68a168a93a0c61e7820fd0ccf884",
+    "paper_comparison/xing2022.py": "734ebc6847024f2e7ab5d98a89f269eab12281c842dc6aa4036199f71f871782"
+  },
+  "thread_environment": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": null
+  },
+  "all_calls_sequential": true,
+  "author_implementation": false
+}

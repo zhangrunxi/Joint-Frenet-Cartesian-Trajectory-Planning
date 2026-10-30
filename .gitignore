@@ -31,6 +31,8 @@ results/**/*.json
 !results/archived/random_benchmark_pre_correction/**/*.json
 !results/archived/random_benchmark_overtake_pre_correction/**/*.json
 !results/archived/contour_accuracy/**/*.json
+!results/archived/random_benchmark_ablation/**/*.json
+!results/archived/random_benchmark_nine_state_serial/**/*.json
 
 # copyrighted papers are not redistributed
 sources/*.pdf

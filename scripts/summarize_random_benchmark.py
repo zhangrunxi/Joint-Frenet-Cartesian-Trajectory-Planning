@@ -42,11 +42,20 @@ TIMING_KEY = {
 
 
 def quantiles(values):
+    """Quantiles together with the sample count they were computed from.
+
+    The count is carried because it is not the case count: a failed case
+    contributes no clearance and no solve time, so the clearance and timing
+    distributions are computed over fewer cases than the completion rate.
+    A reader who compares the two without this number reads the wrong
+    denominator.
+    """
     values = [v for v in values if v is not None and np.isfinite(v)]
     if not values:
-        return {}
+        return {"n": 0}
     array = np.asarray(values, dtype=float)
     return {
+        "n": int(array.size),
         "min": float(array.min()),
         "p05": float(np.percentile(array, 5)),
         "median": float(np.median(array)),

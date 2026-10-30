@@ -35,8 +35,9 @@ over 40 cases while the clearance and timing distributions are over 37.
 
 Solve times are only comparable within a backend. The proposed method runs on
 acados/HPIPM, the Reiter reconstruction on CasADi/OSQP and the Xing
-reconstruction on a self-written QP solver; the medians are 1.90 ms, 5.06 ms
-and 31.53 ms respectively, which is a difference in magnitude and not a
+reconstruction on a self-written QP solver; the medians over the successful
+curved-road cases are 1.90 ms, 5.06 ms and 31.53 ms respectively (over all 40
+cases the Xing median is 26.44 ms), which is a difference in magnitude and not a
 speed-up ratio. The same applies to the failed cases of the pruned variant,
 whose solver iterates until it fails and takes 55-81 ms.
 

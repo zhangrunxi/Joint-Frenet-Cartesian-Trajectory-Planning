@@ -1,0 +1,10 @@
+method,backend,cases,infeasible_scenes,feasible_cases,completed,completion_rate,overtakes,overtake_rate
+paper6_capsule_sqp,acados,40,0,40,29,0.725,3,0.075
+paper6_circles5_sqp,acados,40,0,40,36,0.9,4,0.1
+paper6_circlesN3_sqp,acados,40,0,40,37,0.925,4,0.1
+paper6_circlesN5_sqp,acados,40,0,40,34,0.85,5,0.125
+paper6_circles_sqp,acados,40,0,40,37,0.925,4,0.1
+paper6_frozen_sqp,acados,40,0,40,35,0.875,2,0.05
+paper6_hybrid_sqp,acados,40,0,40,35,0.875,2,0.05
+paper6_nokappa_sqp,acados,40,0,40,35,0.875,2,0.05
+paper6_pruned_sqp,acados,40,0,40,22,0.55,1,0.025

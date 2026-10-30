@@ -1,0 +1,28 @@
+method,completion_rate,median_solve_ms_of_successful_cases
+paper6_capsule_sqp,0.666667,1.061760
+paper6_circles5_sqp,0.888889,2.030102
+paper6_circlesN3_sqp,0.925926,1.349481
+paper6_circlesN5_sqp,0.814815,1.847604
+paper6_circles_sqp,0.925926,1.385138
+paper6_frozen_sqp,0.851852,1.840065
+paper6_hybrid_cilqr,0.851852,29.681138
+paper6_hybrid_sqp,0.851852,1.900147
+paper6_nokappa_sqp,0.851852,1.802862
+paper6_pruned_sqp,0.518519,41.630812
+paper9_hybrid_sqp,0.851852,2.308882
+reiter_direct_circles,0.925926,5.059072
+reiter_direct_ellipse,0.851852,3.903155
+reiter_direct_ellipse_point,0.851852,3.804679
+reiter_lifted_circles,0.592593,5.087346
+reiter_lifted_ellipse,0.666667,4.699022
+xing_joint_corridor,0.518519,26.741147
+xing_joint_corridor_point,0.518519,27.228023
+xing_joint_yield,1.000000,31.534857
+
+scenario,curve
+timing_field,mean_solve_wall_ms
+timing_population,successful cases only
+tie_breaking,average rank (scipy default)
+methods,19
+spearman,-0.306227
+kendall,-0.262191
