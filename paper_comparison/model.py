@@ -13,7 +13,11 @@ import casadi as ca
 import numpy as np
 from acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
 
-from reiter2023.geometry import covering_circles, ellipse_constraint
+from reiter2023.geometry import (
+    covering_circles,
+    covering_circles_paper,
+    ellipse_constraint,
+)
 from reiter2023.trajectory_planner_acados_20222 import paper_vehicle
 
 
@@ -220,6 +224,7 @@ class PaperModel:
         obstacle="HYBRID",
         frozen_heading=False,
         circle_count=3,
+        circle_covering="gym",
         pruned=False,
         n_disc=5,
         kappa_as_state=True,
@@ -230,6 +235,9 @@ class PaperModel:
         self.lifted, self.obstacle = lifted, obstacle
         self.frozen_heading = frozen_heading
         self.circle_count = circle_count
+        # "gym" uses the fixed-radius covering of vehicle_gym; "paper" uses
+        # the N-dependent radius of the manuscript's Eq. (11)-(14).
+        self.circle_covering = circle_covering
         self.pruned = pruned
         self.n_disc = n_disc
         # When False the sixth state holds the steering angle instead of the
@@ -317,8 +325,13 @@ class PaperModel:
                 gym_pose(pose), gym_pose(p[:3]), vehicle, vehicle, opts.obstacle_margin
             )
         elif self.obstacle == "CIRCLES":
-            ego, er = covering_circles(gym_pose(pose), vehicle, self.circle_count)
-            other, rr = covering_circles(gym_pose(p[:3]), vehicle, self.circle_count)
+            cover = (
+                covering_circles_paper
+                if self.circle_covering == "paper"
+                else covering_circles
+            )
+            ego, er = cover(gym_pose(pose), vehicle, self.circle_count)
+            other, rr = cover(gym_pose(p[:3]), vehicle, self.circle_count)
             obs = ca.vertcat(
                 *[
                     ca.sqrt(ca.sumsqr(a - b) + 1e-16) - er - rr - opts.obstacle_margin

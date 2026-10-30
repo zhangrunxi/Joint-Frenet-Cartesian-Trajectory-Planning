@@ -8,6 +8,8 @@
 #   paper6_frozen_sqp     [16]-style frozen heading deviation along the contour
 #   paper6_circles_sqp    three covering circles
 #   paper6_circles5_sqp   five covering circles
+#   paper6_circlesN3_sqp  three circles with the radius of Eq. 11-14
+#   paper6_circlesN5_sqp  five circles with the radius of Eq. 11-14
 #   paper6_nokappa_sqp    steering angle as the sixth state instead of curvature
 #   paper6_pruned_sqp     hierarchical constraint pruning from Section 5.2
 #
@@ -27,5 +29,6 @@ export ACADOS_OCP_SPY=0
 
 exec .venv/bin/python scripts/run_random_benchmark.py \
   --methods paper6_hybrid_sqp paper6_frozen_sqp paper6_circles_sqp \
-  paper6_circles5_sqp paper6_nokappa_sqp paper6_pruned_sqp \
+  paper6_circles5_sqp paper6_circlesN3_sqp paper6_circlesN5_sqp \
+  paper6_nokappa_sqp paper6_pruned_sqp paper6_capsule_sqp \
   "$@"

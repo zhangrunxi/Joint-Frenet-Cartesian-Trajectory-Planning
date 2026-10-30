@@ -30,6 +30,8 @@ LABELS = {
     "paper9_hybrid_sqp": "Ours 9-state hybrid",
     "paper6_circles_sqp": "Ours 6-state circles",
     "paper6_circles5_sqp": "Ours 6-state five circles",
+    "paper6_circlesN3_sqp": "Ours 6-state three circles (Eq. 11-14)",
+    "paper6_circlesN5_sqp": "Ours 6-state five circles (Eq. 11-14)",
     "paper6_frozen_sqp": "Ours 6-state frozen heading",
     "paper6_hybrid_cilqr": "Ours 6-state AL-CiLQR",
     "xing_joint_corridor": "Xing joint keep-left",

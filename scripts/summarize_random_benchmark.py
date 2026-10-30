@@ -24,6 +24,8 @@ BACKENDS = {
     "paper6_circles_sqp": "acados",
     "paper6_frozen_sqp": "acados",
     "paper6_circles5_sqp": "acados",
+    "paper6_circlesN3_sqp": "acados",
+    "paper6_circlesN5_sqp": "acados",
     "paper6_pruned_sqp": "acados",
     "paper6_capsule_sqp": "acados",
     "paper6_nokappa_sqp": "acados",

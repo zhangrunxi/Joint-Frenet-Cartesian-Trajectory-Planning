@@ -103,6 +103,49 @@ def covering_circles(pose, vehicle, count):
     return [ca.vertcat(x, y) for x, y in zip(xs, ys)], float(radius)
 
 
+def covering_circles_paper(pose, vehicle, count):
+    """The N-circle covering of the manuscript's Eq. (11)-(14).
+
+    In the manuscript the covering radius depends on the number of circles,
+
+        r(N) = (W/2) * sqrt(1 + lambda^2 / N^2),   lambda = L / W
+
+    so that N circles of that radius distributed along the longitudinal axis
+    cover the rectangle with the smallest possible redundancy. This differs
+    from ``covering_circles``, which uses the fixed-radius covering of
+    ``vehicle_gym`` (radius W/sqrt(2), independent of N); the two agree only
+    when N equals the aspect ratio.
+
+    The circle centres are spread evenly along the axis between the two ends
+    of the rectangle, which is the layout the redundancy expression assumes.
+    """
+    if not isinstance(count, int) or count < 1:
+        raise ValueError("Circle count must be a positive integer")
+
+    length = vehicle.chassis_length
+    width = vehicle.chassis_width
+    aspect = length / width
+    radius = 0.5 * width * float(np.sqrt(1.0 + aspect**2 / count**2))
+
+    # The rectangle spans [-L/2, L/2] about the body centre, which sits
+    # wheelbase/2 ahead of the rear axle.
+    d_rear = (length - vehicle.length) / 2.0
+    body_center = d_rear + vehicle.length / 2.0
+
+    if count == 1:
+        offsets = np.zeros(1)
+    else:
+        offsets = np.linspace(-length / 2.0, length / 2.0, count)
+
+    heading = pose[2]
+    cosine, sine = ca.cos(heading), ca.sin(heading)
+    centers = []
+    for offset in offsets:
+        x = body_center + offset
+        centers.append(ca.vertcat(pose[0] + x * cosine, pose[1] + x * sine))
+    return centers, radius
+
+
 def ellipse_constraint(ego_pose, obstacle_pose, ego, obstacle, margin=0.0):
     """Equation (14), with a circumscribing ego circle and inflated obstacle axes."""
     radius = np.hypot(ego.chassis_length, ego.chassis_width) / 2
