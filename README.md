@@ -114,12 +114,20 @@ clearance at the saved states. It does not re-time the solvers.
 | Conservative-geometry audit (ellipse / three circles / proposed) | `scripts/measure_geometry_conservatism.py` | `results/archived/geometry_conservatism/summary.csv` |
 | Six- versus nine-state overhead | `scripts/run_dimension_scaling.py` | `results/archived/dimension_scaling/summary.csv` |
 | Randomized scenario set, general and overtaking tasks | `scripts/run_random_benchmark.py` | `results/archived/random_benchmark/`, `results/archived/random_benchmark_overtake/` |
+| The same benchmark before the scenario-feasibility correction | `scripts/run_random_benchmark.py` | `results/archived/random_benchmark_pre_correction/`, `results/archived/random_benchmark_overtake_pre_correction/` |
 | Contour accuracy against the discretization count | `scripts/run_ndisc_sweep.py` | `results/archived/contour_accuracy/` |
 | Road-width sensitivity | `scripts/run_width_sweep.sh` | `results/archived/final_width_comparison_plots_v2/` |
 | Pruning procedure figure | `scripts/plot_pruning_figure.py` | `results/archived/geometry_conservatism/pruning_procedure.png` |
 
 The two randomized archives carry a `provenance.json` that records the protocol,
 the seed and the digests of the source files that produced them.
+
+The archive also contains the **pre-correction** run of the randomized
+benchmark, which is the evidence behind a correction reported to the reviewer:
+the original generator produced 13 of 40 cases whose initial state violates
+the lateral acceleration bound of Eq. (34f), so the completion rates of that
+run measure the generator rather than the planners. Its own README explains the
+defect, the correction and the difference the correction makes.
 
 ## Tests
 
