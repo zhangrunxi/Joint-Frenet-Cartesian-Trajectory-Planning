@@ -19,6 +19,9 @@ which reads the settings the runners actually pass to each planner.
 | Speed limit | 20.0 m/s |
 | Reference line | circular road with the case curvature, for every method |
 | Obstacle prediction | constant speed along the reference line, for every method |
+| First-frame initial guess | per method in the frozen protocol; a shared constant-speed guess with a lateral ramp in the harmonized set of protocol section 4 |
+| Acceptance rule | a converged solve (frozen); also an iterate that met the 1e-4 violation tolerance at the iteration cap (harmonized) |
+| Node-0 nonlinear constraints | unset for the proposed model in the frozen protocol (a defect, repaired in the corrected sets); only the two rows that depend on the executed control are constrained |
 
 ## Per method
 
@@ -28,6 +31,7 @@ which reads the settings the runners actually pass to each planner.
 | Xing joint corridor, point bounds | 7 (joint Cartesian-Frenet) | corridor (Frenet safety corridor) | reference-point lateral offset | OSQP, own implementation |
 | Xing joint, always yield | 7 (joint Cartesian-Frenet) | corridor (Frenet safety corridor) | corridor half-width, reference point | OSQP, own implementation |
 | Reiter direct elimination | 5 (Frenet) | ellipse or covering circles | reference-point lateral offset | SQP (CasADi/OSQP), re-implementation |
+| Reiter (asymmetric detail) | - | - | - | the original vendor code retries once after a failed solve; the reconstruction of the proposed model does not |
 | Reiter lifted ODE | 8 (lifted Frenet) | ellipse or covering circles | reference-point lateral offset | SQP (CasADi/OSQP), re-implementation |
 | This paper, six states | 6 (Frenet) | capsule plus four corner circles | every capsule/circle pair | SQP (acados/HPIPM), re-implementation |
 | This paper, nine states | 9 (lifted Frenet) | capsule plus four corner circles | every capsule/circle pair | SQP (acados/HPIPM), re-implementation |
