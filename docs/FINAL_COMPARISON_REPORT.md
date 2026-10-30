@@ -291,3 +291,46 @@ bash scripts/run_final_comparison.sh --steps 120 \
 建议把贡献重点放在**长车的混合车体约束、特定空间条件下较少保守的规划结果，
 以及经过受控实验测量的状态组织开销**。这比“首次联合坐标、全面更快、
 窄路普遍更强”更符合本轮实验实际。
+
+## 9. 补充：Reiter 原文 Table 2 的核对结果（2026-10-30）
+
+为准备论文修改稿，逐条核对了 Reiter 原文（`sources/Reiter2023a.pdf`）中与本文
+相关工作表述对应的内容，结果记录如下，供正文引用时使用。
+
+1. **Table 2（CF 表示形式对比）** 中，"Lifted ODE Frenet"（8 状态）的问题一栏写为
+   **"redundant states"**，"Direct Elimination Frenet"（5 状态）该栏为空。
+   即「提升表示产生冗余状态」这一观察出自 Reiter 自己的对比表。
+   本文的六状态表示处于这两者之间。
+
+2. **Table 4（参数）** 中道路侧只有一个 "road bounds" 参数（道路半宽），
+   其约束作用于参考点，不是整车轮廓。因此本文原稿中
+   「both [26] and [20] fail to explicitly model the complete vehicle contour in
+   road constraint formulations」对 [20] 成立，但表述宜更精确。
+
+3. **Table 5 与正文** 报告了各障碍物几何形式（椭圆、覆盖圆、分离超平面）的
+   计算耗时与进度，并指出分离超平面形式在耗时与进度上都更差。
+   本文的重建只覆盖椭圆与覆盖圆两种，未实现分离超平面形式。
+
+4. **第 2.3 节** 说明 Frenet 坐标下的障碍物形状变换在 SQP 下不能保证安全过近似，
+   这是 [20] 的核心论点之一，与本文「Frenet 障碍物过近似」的批评方向一致。
+
+这些核对结果使相关工作可以改写为有出处、可测量的表述，取代原来无依据的
+"dimensionality explosion" 一语。相关改写草稿见
+`../../论文修改稿_评审意见2和3.md`。
+
+## 10. 补充：Xing 原文状态定义的核对结果（2026-10-30）
+
+核对 `Vehicle_Motion_Planning_With_Joint_Cartesian-Frent_MPC.pdf`：
+
+- 原文 Eq. (2) 定义笛卡尔状态 `p_c = [V, X, Y, psi]ᵀ`（含惯量），
+  Eq. (3) 定义控制 `u = [delta, a]ᵀ`；
+  Eq. (21) 的联合状态为 `[p_cᵀ, p_fᵀ]ᵀ`，Frenet 部分 `p_f = [S, D, phi]ᵀ`
+  （见 Eq. (11)）。因此联合状态共 7 维，与本重建的
+  `[V, X, Y, psi, S, D, phi]` 一致。
+- Eq. (9) 给出 Frenet 状态对笛卡尔状态的确定性连接（9a–9c），
+  说明联合状态中的 `S` 可由 `X, Y, psi` 恢复，属于确定性重复信息。
+  这与 Reiter 原文 Table 2 把 lifted 表示的问题列为 "redundant states" 是同一现象。
+- 因此论文原稿「redundant coupling of Cartesian and Frenet states causes state-space
+  dimensionality explosion」中，前半句（冗余耦合）在两篇原文里都能找到依据，
+  后半句（爆炸）在两篇原文里都没有依据。改写时应保留前半句、去掉后半句，
+  并改为引用本文自己的受控消融数据。

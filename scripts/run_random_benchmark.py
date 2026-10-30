@@ -34,6 +34,11 @@ from run_final_comparison import run_xing
 RANDOM_PROTOCOL = {
     "seed": 20261030,
     "cases": 40,
+    # "general": lateral target drawn from the offsets below, so the scenario is
+    # ordinary following or crossing traffic. "overtake": the lateral target is
+    # placed on the far side of the obstacle, so every case asks the planner to
+    # pass the obstacle.
+    "task": "general",
     "half_width_m": [4.6, 8.5],
     # Lateral targets are drawn relative to the road half width so that the
     # target always stays inside the drivable area. The bus half width is
@@ -78,7 +83,11 @@ def build_cases(protocol):
     cases = []
     for index in range(protocol["cases"]):
         half_width = float(rng.choice(protocol["half_width_m"]))
-        lateral = float(rng.choice(protocol["lateral_offset_m"]))
+        if protocol.get("task") == "overtake":
+            side = float(rng.choice([-1.0, 1.0]))
+            lateral = side * (half_width - 1.5)
+        else:
+            lateral = float(rng.choice(protocol["lateral_offset_m"]))
         # Keep the reference point inside the drivable corridor.
         lateral = float(
             np.clip(lateral, -half_width + 1.35, half_width - 1.35)
@@ -149,6 +158,9 @@ def main():
         nargs="+",
         default=METHODS + POINT_METHODS + ABLATION_METHODS,
     )
+    parser.add_argument(
+        "--task", choices=["general", "overtake"], default=RANDOM_PROTOCOL["task"]
+    )
     parser.add_argument("--case-start", type=int, default=0)
     parser.add_argument("--case-stop", type=int, default=None)
     args = parser.parse_args()
@@ -156,6 +168,7 @@ def main():
     protocol = dict(RANDOM_PROTOCOL)
     protocol["cases"] = args.cases
     protocol["steps"] = args.steps
+    protocol["task"] = args.task
     cases = build_cases(protocol)
     if args.output.exists() and any(args.output.iterdir()):
         raise FileExistsError("Use an empty new output directory")
