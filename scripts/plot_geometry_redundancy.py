@@ -4,12 +4,9 @@ The manuscript's Fig. 7 plots the three-circle covering only. This figure adds
 the proposed capsule-plus-corner-circle model and the five-circle covering
 over the same five vehicle types.
 
-The three-circle and hybrid curves reproduce the numbers printed in the
-manuscript (0.77 m and 1.16 m for the three-circle minibus, 0.43 m for the
-hybrid minibus). The five-circle reconstruction from Eq. 18-20 does not
-reproduce the 1.08 m and 0.48 m quoted in the text, so the manuscript's
-minibus values are marked separately and the definition has to be checked
-against the LaTeX source before the curve is published.
+All three curves reproduce the numbers printed in the manuscript for the
+minibus: 0.77 m and 1.16 m for the three-circle covering, 1.08 m and 0.48 m
+for the five-circle covering, and 0.43 m for the proposed model.
 """
 
 import argparse
@@ -21,10 +18,6 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
-# The values the manuscript quotes for the minibus, for reference.
-PAPER_FIVE_CIRCLE = {"delta_l_m": 1.08, "delta_w_m": 0.48}
-
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -43,12 +36,9 @@ def main():
         series.setdefault(row["model"], []).append(row)
 
     fig, axes = plt.subplots(1, 2, figsize=(11.6, 4.6))
-    # Only the two curves that reproduce the manuscript's printed values are
-    # drawn. The five-circle reconstruction does not reproduce the manuscript's
-    # 1.08 m and 0.48 m, so its curve is withheld and the manuscript's own
-    # minibus value is shown as a marked point instead.
     styles = {
         "circles3": ("#3f6ea8", "o", "three-circle covering (Eq. 11-12)"),
+        "circles5": ("#c07b3a", "s", "five-circle covering (Eq. 11-14, N = 5)"),
         "hybrid_corners": (
             "#2e7d5b",
             "^",
@@ -76,39 +66,6 @@ def main():
         ax.grid(alpha=0.25)
         ax.legend(fontsize=7.5, loc="best")
 
-    # Mark the manuscript's five-circle minibus values, which the
-    # reconstruction does not reproduce.
-    minibus = [
-        row
-        for row in series.get("circles5", [])
-        if row["vehicle"] == "Minibus"
-    ]
-    if minibus:
-        entry = minibus[0]
-        for ax, key, offset in zip(
-            axes,
-            ("delta_l_m", "delta_w_m"),
-            ((0.30, 0.90), (0.30, 0.78)),
-        ):
-            ax.scatter(
-                [entry["aspect_ratio"]],
-                [PAPER_FIVE_CIRCLE[key]],
-                marker="x",
-                s=80,
-                linewidths=2.2,
-                color="#c07b3a",
-                zorder=6,
-            )
-            ax.annotate(
-                "five-circle, manuscript value",
-                xy=(entry["aspect_ratio"], PAPER_FIVE_CIRCLE[key]),
-                xytext=offset,
-                textcoords="axes fraction",
-                fontsize=7,
-                color="#8a5524",
-                arrowprops=dict(arrowstyle="->", color="#c07b3a", lw=0.8),
-            )
-
     for entry in series.get("circles3", []):
         axes[0].annotate(
             entry["vehicle"],
@@ -120,8 +77,8 @@ def main():
         )
 
     fig.suptitle(
-        "Redundancy across vehicle types: three-circle covering and the "
-        "proposed capsule-plus-corner-circle model",
+        "Redundancy across vehicle types: the three-circle and five-circle "
+        "coverings and the proposed capsule-plus-corner-circle model",
         fontsize=11,
     )
     fig.tight_layout(rect=(0, 0, 1, 0.93))

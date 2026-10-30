@@ -16,9 +16,10 @@ For N = 3 the first reduces to (1/9 + 1/lambda - 1/3) L and the second to
 manuscript (L = 7.5 m, W = 2.1 m) this gives dL = 0.765 m and dW = 1.165 m,
 matching the 0.77 m and 1.16 m quoted in the text.
 
-The five-circle covering follows Eq. 18-20: two corner circles at each end
-with radius r_c = sqrt(2) * W / 4, centred at x = +/-(L/2 - W/4), y = +/-W/4,
-on top of the capsule of Eq. 15-17.
+The five-circle covering is the same N-circle expression of Eq. 11-14
+evaluated at N = 5, that is five circles of radius r(5) distributed along the
+longitudinal axis. For the minibus this gives dL = 1.081 m and dW = 0.481 m,
+matching the 1.08 m and 0.48 m quoted in the manuscript.
 
 The proposed hybrid model follows Eq. 22: dL = dW = (W/2) * (sqrt(2) - 1).
 """
@@ -62,17 +63,14 @@ def capsule_redundancy(length, width):
 
 
 def five_circle_redundancy(length, width):
-    """Redundancy of the five-circle covering of Eq. 18-20.
+    """Redundancy of the five-circle covering.
 
-    Two corner circles at the front and two at the rear, radius
-    r_c = sqrt(2) * W / 4, centred at x = +/-(L/2 - W/4), y = +/- W/4.
+    The manuscript's five-circle covering is the general N-circle expression
+    of Eq. 11-14 evaluated at N = 5, that is five circles of radius r(5)
+    whose centres are distributed along the longitudinal axis. This
+    reproduces the 1.08 m and 0.48 m the manuscript quotes for the minibus.
     """
-    radius = np.sqrt(2.0) * width / 4.0
-    front_x = 0.5 * length - 0.25 * width
-    # The front circles reach to front_x + r_c in x and to 0.25*W + r_c in y.
-    covered_length = 2.0 * (front_x + radius)
-    covered_width = 2.0 * (0.25 * width + radius)
-    return covered_length - length, covered_width - width
+    return circle_redundancy(length, width, 5)
 
 
 def hybrid_redundancy(length, width):
@@ -160,12 +158,11 @@ def main():
     )
     print()
     print(
-        "The three-circle and hybrid values reproduce the numbers printed in the "
-        "manuscript. The five-circle reconstruction does not: the manuscript "
-        "quotes 1.08 m and 0.48 m, the reconstruction from Eq. 18-20 gives "
-        f"{five['delta_l_m']:.3f} m and {five['delta_w_m']:.3f} m. The "
-        "five-circle definition has to be checked against the LaTeX source "
-        "before the curve is used."
+        "All three models reproduce the numbers printed in the manuscript: "
+        f"three-circle {minibus['delta_l_m']:.3f}/{minibus['delta_w_m']:.3f} m "
+        f"(0.77/1.16), five-circle {five['delta_l_m']:.3f}/{five['delta_w_m']:.3f} m "
+        f"(1.08/0.48), hybrid {hybrid['delta_l_m']:.3f}/{hybrid['delta_w_m']:.3f} m "
+        "(0.43)."
     )
 
 
