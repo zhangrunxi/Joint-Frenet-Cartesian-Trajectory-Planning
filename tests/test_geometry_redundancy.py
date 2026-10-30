@@ -90,11 +90,12 @@ def test_the_lateral_claim_has_exceptions_on_the_compact_vehicles():
     """The lateral claim has exceptions, and they are the compact vehicles.
 
     The proposed model is laterally tighter than the three-circle covering on
-    every vehicle type, but not than the five-circle covering: for the Smart,
-    Sedan and SUV the five circles are laterally tighter than the proposed
-    model, because a compact vehicle is nearly square and the circle layouts
-    waste little lateral extent. The exceptions are stated in the manuscript
-    rather than hidden, so this test pins them down.
+    every vehicle type except the Smart, and not than the five-circle covering
+    for the Smart, Sedan, SUV and the test vehicle of Table 1: for those, the
+    five circles are laterally tighter than the proposed model, because the
+    circle layouts waste little lateral extent once the aspect ratio is small.
+    The exceptions are stated in the manuscript rather than hidden, so this
+    test pins them down.
     """
     exceptions = []
     for name, (length, width) in _redundancy.VEHICLES.items():
@@ -108,4 +109,18 @@ def test_the_lateral_claim_has_exceptions_on_the_compact_vehicles():
         ("Smart", 5),
         ("Sedan", 5),
         ("SUV", 5),
+        ("Bus (Table 1)", 5),
     ]
+
+
+def test_the_test_vehicle_of_table_1_is_longitudinally_tighter_than_both_coverings():
+    """For the bus geometry of Table 1 the proposed model is longitudinally
+    the tightest of the three, and laterally tighter than the three-circle
+    covering but not than the five-circle one."""
+    length, width = 6.50, 2.30
+    hybrid_l, hybrid_w = _redundancy.hybrid_redundancy(length, width)
+    three_l, three_w = _redundancy.circle_redundancy(length, width, 3)
+    five_l, five_w = _redundancy.circle_redundancy(length, width, 5)
+    assert hybrid_l < three_l < five_l
+    assert hybrid_w < three_w
+    assert hybrid_w > five_w

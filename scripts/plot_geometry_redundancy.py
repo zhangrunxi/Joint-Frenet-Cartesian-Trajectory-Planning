@@ -64,24 +64,42 @@ def main():
         ax.set_xlabel(r"Aspect Ratio  $\lambda = L_{veh}/W_{veh}$")
         ax.set_ylabel(f"{label} Redundancy [m]")
         ax.grid(alpha=0.25)
-        ax.legend(fontsize=7.5, loc="best")
+        # The legend sits below the axes so that it cannot cover a curve, and
+        # the x limits leave room for the rightmost vehicle label.
+        ax.set_xlim(right=max(
+            entry["aspect_ratio"]
+            for entries in series.values()
+            for entry in entries
+        ) + 0.45)
 
     for entry in series.get("circles3", []):
         axes[0].annotate(
             entry["vehicle"],
             xy=(entry["aspect_ratio"], entry["delta_l_m"]),
             xytext=(5, 7),
+            clip_on=False,
             textcoords="offset points",
             fontsize=6.5,
             color="#3f6ea8",
         )
 
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles,
+        labels,
+        fontsize=8,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.905),
+        ncol=3,
+        frameon=False,
+    )
     fig.suptitle(
         "Redundancy across vehicle types: the three-circle and five-circle "
         "coverings and the proposed capsule-plus-corner-circle model",
         fontsize=11,
+        y=0.99,
     )
-    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    fig.tight_layout(rect=(0, 0, 1, 0.86))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.output, dpi=200)
     print(f"wrote {args.output}")

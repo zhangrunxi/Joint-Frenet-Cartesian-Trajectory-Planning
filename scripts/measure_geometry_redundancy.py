@@ -38,6 +38,10 @@ VEHICLES = {
     "SUV": (5.50, 1.90),
     "Minibus": (7.50, 2.10),
     "Coach": (12.00, 2.50),
+    # The test vehicle of Table 1 in the manuscript (L = 6.50 m, W = 2.30 m).
+    # It is included because the redundancy argument of the manuscript applies
+    # to this geometry in particular.
+    "Bus (Table 1)": (6.50, 2.30),
 }
 
 
