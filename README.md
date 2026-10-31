@@ -46,6 +46,13 @@ results/              archived summaries and figures
 vendor/               third-party dependencies (git submodules)
 ```
 
+## Reviewer quick start
+
+For the shortest reproducible path to the frozen bus/SUV comparison, curb
+sensitivity, harmonized sensitivity, tests and provenance checks, see
+[`docs/REVIEWER_QUICKSTART.md`](docs/REVIEWER_QUICKSTART.md). The full
+protocols and audit reports remain linked below.
+
 ## Setup
 
 Python 3.11 is used. `vendor/` holds pinned third-party checkouts:
@@ -186,10 +193,11 @@ These are stated in full in `docs/AUDIT_FINDINGS.md` and
 `docs/FINAL_COMPARISON_REPORT.md`. The most important ones:
 
 - The road-boundary projection in the proposed model is an approximation. In
-  one archived width-sweep case the physical clearance was 0.194 m against a
-  nominal 0.2 m margin. That shortfall is disclosed, not removed. On the
-  narrow curb task the same approximation takes up to 0.075 m of the margin
-  (bus) without striking the curb.
+  the ten-segment narrow-curb audit the minimum exact-rectangle clearance is
+  0.182 m for the bus and 0.188 m for the SUV against a nominal 0.2 m margin.
+  The static inflated and Xing-style full-body references avoid strikes in
+  this constant-curvature task, so the proposed contour is not claimed to
+  dominate stronger full-body road-boundary formulations.
 - The proposed hybrid geometry is more conservative than the exact rectangle:
   its minimum passable gap is 3.18 m against 2.70 m for the bus.
 - The node-0 nonlinear constraints of the proposed model were unset in the
