@@ -18,17 +18,33 @@ import csv
 import json
 from collections import defaultdict
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from paper_comparison.evaluation import initial_state_diagnostics
+from paper_comparison.vehicle import GEOMETRY, VEHICLES
 
 
 def load(root: Path):
     """Per-case records and cases of every part directory under ``root``."""
     rows, cases = [], {}
     for part in sorted({p.parent for p in root.rglob("partial_results.jsonl")}):
-        for case in json.loads((part / "cases.json").read_text()):
-            cases[case["case_id"]] = case
+        protocol_path = part / "protocol.json"
+        protocol = json.loads(protocol_path.read_text()) if protocol_path.exists() else {}
+        geometry = VEHICLES[protocol.get("vehicle", GEOMETRY.name)]
+        part_cases = {
+            case["case_id"]: {**case, **initial_state_diagnostics(case, geometry=geometry)}
+            for case in json.loads((part / "cases.json").read_text())
+        }
+        cases.update(part_cases)
         for line in (part / "partial_results.jsonl").read_text().splitlines():
             if line.strip().startswith("{"):
-                rows.append(json.loads(line))
+                row = json.loads(line)
+                row.update({key: value for key, value in part_cases[row["case_id"]].items()
+                            if key.startswith("initial_")})
+                rows.append(row)
     return rows, cases
 
 
@@ -45,18 +61,21 @@ def gap_table(rows, cases):
     table = defaultdict(lambda: [0, 0, 0])
     for row in rows:
         case = cases[row["case_id"]]
-        key = (row["method"], case["gap"], case["kappa"] == 0.0)
+        key = (row["method"], case["gap"], case["kappa"] == 0.0,
+               row.get("initial_state_valid", case.get("initial_state_valid", True)))
         passed = bool(row.get("success") and row.get("passed_obstacle"))
         clearance = row.get("min_obstacle_clearance_m")
         table[key][0] += 1
         table[key][1] += passed
         table[key][2] += passed and clearance is not None and clearance >= MARGIN_TOLERANCE_M
     out = []
-    for (method, gap, straight), (n, passed, kept) in sorted(table.items()):
+    for (method, gap, straight, valid), (n, passed, kept) in sorted(table.items()):
         out.append(
             {
                 "method": method,
                 "gap_m": gap,
+                "initial_state_valid": valid,
+                "eligible_cases": n if valid else 0,
                 "road": "straight" if straight else "curve",
                 "cases": n,
                 "passed": passed,
@@ -69,9 +88,11 @@ def gap_table(rows, cases):
 def curb_table(rows, cases):
     table = defaultdict(list)
     for row in rows:
-        table[row["method"]].append(row)
+        case = cases[row["case_id"]]
+        valid = row.get("initial_state_valid", case.get("initial_state_valid", True))
+        table[(row["method"], valid)].append(row)
     out = []
-    for method, group in sorted(table.items()):
+    for (method, valid), group in sorted(table.items()):
         clearances = [
             r["min_road_clearance_m"]
             for r in group
@@ -81,6 +102,8 @@ def curb_table(rows, cases):
             {
                 "method": method,
                 "cases": len(group),
+                "initial_state_valid": valid,
+                "eligible_cases": len(group) if valid else 0,
                 "completed": sum(1 for r in group if r.get("success")),
                 "evaluated": len(clearances),
                 "curb_strikes": sum(1 for c in clearances if c < 0.0),

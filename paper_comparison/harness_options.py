@@ -44,3 +44,13 @@ ACCEPT_MAXITER = os.environ.get("BENCH_ACCEPT_MAXITER", "0") == "1"
 
 def accepted_status(status):
     return status == 0 or (ACCEPT_MAXITER and status == 2)
+
+
+# Implementation details of the Xing reconstruction that the paper does not
+# fix. ``BENCH_XING_ACCEPT_INACCURATE=1`` keeps an OSQP "solved inaccurate"
+# iterate instead of aborting the SQP; the nonlinear residual check still
+# decides acceptance. ``BENCH_XING_FREEZE_CORRIDOR=1`` decides the keep-left
+# wall once per frame from the warm start instead of at every SQP iteration,
+# which removes the corridor switching between iterations.
+XING_ACCEPT_INACCURATE = os.environ.get("BENCH_XING_ACCEPT_INACCURATE", "0") == "1"
+XING_FREEZE_CORRIDOR = os.environ.get("BENCH_XING_FREEZE_CORRIDOR", "0") == "1"

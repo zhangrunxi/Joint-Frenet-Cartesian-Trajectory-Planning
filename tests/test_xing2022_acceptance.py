@@ -84,3 +84,66 @@ def test_endpoint_acceleration_jacobian_includes_acceleration_input():
     assert np.asarray(J)[0, 0] == pytest.approx(expected_v)
     assert np.asarray(K)[0, 1] == pytest.approx(m.dt * expected_v)
     assert np.asarray(K)[0, 0] == pytest.approx(vend**2 / (4.32 * np.cos(u[0]) ** 2))
+
+
+def test_frozen_corridor_rejects_acceleration_into_obstacle():
+    from paper_comparison.xing2022 import XingOptions
+    from paper_comparison.evaluation import evaluate_sample
+
+    m = XingPlanner(CircularRoad(0, 8.5), Settings(), XingOptions(
+        initial_speed=5, obstacle_start=35, obstacle_speed=0, freeze_corridor=True))
+    initial = m.initial()
+    seed(m, initial)
+    cached = m.corridor(m.X, 0)
+    m._frozen_corridor = cached
+    trajectory, controls = [initial], []
+    for j in range(m.N):
+        control = np.array([0, min(.4 * (j + 1), 2.5)])
+        controls.append(control)
+        trajectory.append(m.integrate(trajectory[-1], control, m.dt))
+    trajectory, controls = np.array(trajectory), np.array(controls)
+    assert min(evaluate_sample(m.canonical(x), [35, 0, 0], 0, 8.5)[
+        "obstacle_clearance_m"] for x in trajectory) < -2
+    violation, coordinate, defect = m.residuals(trajectory, controls, initial, 0)
+    assert violation >= 2.5 - 1e-10
+    assert max(coordinate, defect) < 1e-10
+    assert m._frozen_corridor is cached
+    assert m.corridor(trajectory, 0) is cached
+    assert np.max(m.corridor(trajectory, 0, recompute=True)[:, 2]) == pytest.approx(2.5)
+
+
+def test_recomputed_corridor_updates_body_envelope_without_changing_cache():
+    m = XingPlanner(CircularRoad(0, 4.6), Settings(intervals=2))
+    seed(m, m.initial())
+    m._frozen_corridor = cached = m.corridor(m.X, 0)
+    candidate = m.X.copy()
+    candidate[:, 3] = candidate[:, 6] = .3
+    fresh = m.corridor(candidate, 0, recompute=True)
+    assert np.all(fresh[:, 3] < cached[:, 3] - .5)
+    assert m.corridor(candidate, 0) is cached
+
+
+def test_prediction_recording_recomputes_frozen_corridor(monkeypatch, tmp_path):
+    import importlib.util
+    import json
+    from pathlib import Path
+
+    script = Path(__file__).resolve().parents[1] / "scripts/run_final_comparison.py"
+    spec = importlib.util.spec_from_file_location("final_comparison_recording", script)
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+
+    class SeededPlanner(XingPlanner):
+        def solve(self, initial, time):
+            seed(self, initial)
+            self._frozen_corridor = self.corridor(self.X, time).copy()
+            self._frozen_corridor[:, 3] = 999
+            return dict(status=0, max_violation=0, coordinate_error=0,
+                        dynamics_defect=0)
+
+    monkeypatch.setattr(runner, "XingPlanner", SeededPlanner)
+    runner.run_xing(tmp_path, "xing_joint_corridor", "straight", 1,
+                    Settings(intervals=2), 8.5, obstacle_start=500)
+    prediction = json.loads((tmp_path / "xing_joint_corridor_straight_predictions.json").read_text())
+    bounds = np.array([row[3] for row in prediction["accepted_predictions"][0]["final_recomputed_corridor"]], dtype=float)
+    np.testing.assert_allclose(bounds, 8.5 - .2 - runner.GEOMETRY.half_width)

@@ -53,3 +53,26 @@ def test_obstacle_parameters_move_the_wall():
     # Lateral obstacle wall applies only near the obstacle's s-interval.
     X = prior(near, road, s0=20.0)
     assert near.corridor(X, 0.0)[0, 2] > far.corridor(X, 0.0)[0, 2]
+
+
+def test_reiter_contour_uses_selected_discretization_without_compilation(monkeypatch):
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import run_paper_comparison as runner
+    from paper_comparison.model import approximate_road_offsets, bus_vehicle
+    from reiter2023 import PlannerOptions
+
+    monkeypatch.setattr(runner, "N_DISC", 10)
+    planner = runner.BusReiter.__new__(runner.BusReiter)
+    planner.road = CircularRoad(1/15, 2.5)
+    planner.ego = bus_vehicle()
+    planner.opp_model_params = [planner.ego]
+    planner.planner_opts = PlannerOptions(use_lifting=False)
+    planner.nx = 5
+    planner._create_model()
+    state = np.array([0, 0, 0, 5, 0])
+    actual = np.array(planner.h_function(state, [0, 0], planner.road.numeric_pose([30, -30, 0]))).ravel()[3:7] - 2.3
+    expected = np.array(approximate_road_offsets(state, planner.road, 10)).ravel()
+    np.testing.assert_allclose(actual, expected)
+    assert np.max(np.abs(actual - np.array(approximate_road_offsets(state, planner.road, 5)).ravel())) > .1

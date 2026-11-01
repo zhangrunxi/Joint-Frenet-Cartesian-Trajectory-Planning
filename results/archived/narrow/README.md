@@ -1,3 +1,7 @@
+> **Superseded (2026-11-01).** These runs predate the node-0 repair, the explicit
+> `N_DISC` hand-off and the Xing residual fix. Use `results/current/` and
+> `docs/REVIEWER_QUICKSTART.md` instead; this directory is kept as an audit trail.
+
 # Narrow-road benchmark, bus and SUV
 
 These runs test the regime the manuscript is written for: a long vehicle on a

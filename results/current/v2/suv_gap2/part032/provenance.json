@@ -1,0 +1,33 @@
+{
+  "command": [
+    "scripts/run_random_benchmark.py",
+    "--task",
+    "gap2",
+    "--output",
+    "results/v2/suv_gap2/part032",
+    "--case-start",
+    "32",
+    "--case-stop",
+    "48"
+  ],
+  "python": "3.11.15 (main, Mar  3 2026, 15:47:15) [Clang 21.1.4 ]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "numpy": "2.4.6",
+  "sha256": {
+    "paper_comparison/__init__.py": "370fd106c02673d4af0f709f7106b9fca3c6badf5f050230a924e4b6882645c5",
+    "paper_comparison/cilqr.py": "71fce9ae944e84cee73ebd701451c3ed88aab7b14d3d5240e47f7c09d6ab9dc9",
+    "paper_comparison/evaluation.py": "ffcec81ecc2c1a583f0dac396339038a08bd11db0f15b1429be00ee636ee3fb8",
+    "paper_comparison/harness_options.py": "dbafc38fca73451b380ead0abb26e03c8d90eb3a3cd04fd5ff2ce620605506bb",
+    "paper_comparison/joint_linear_proxy.py": "7fa0a6a51cd9b20188d93e658df87ffc947abe58bfcd208c73ec129c7ea97cb2",
+    "paper_comparison/model.py": "34d92bb6abc70acad1dc042f1157acff511ec8383d010b1bcfec9063088aab16",
+    "paper_comparison/vehicle.py": "aa8936c341a40b42491236f90f6ee93a4a7bbdbdd0ecff9b3d4b4bcc5f1df0ab",
+    "paper_comparison/xing2022.py": "bfab171b0aaba1d5e6c789ec14eff87c20427832236c99f0e88186c54bbcd662"
+  },
+  "thread_environment": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "all_calls_sequential": true,
+  "author_implementation": false
+}

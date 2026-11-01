@@ -115,7 +115,7 @@ def run_xing(
                 "original_order_states": planner.X.copy(),
                 "controls": planner.U.copy(),
                 "final_recomputed_corridor": planner.corridor(
-                    planner.X, j * settings.dt
+                    planner.X, j * settings.dt, recompute=True
                 ),
             }
         )

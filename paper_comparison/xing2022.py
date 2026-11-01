@@ -16,7 +16,12 @@ from scipy import sparse
 
 from paper_comparison.evaluation import rectangle_vertices
 from paper_comparison.model import bus_vehicle
-from paper_comparison.harness_options import INITIAL_GUESS, lateral_ramp
+from paper_comparison.harness_options import (
+    INITIAL_GUESS,
+    XING_ACCEPT_INACCURATE,
+    XING_FREEZE_CORRIDOR,
+    lateral_ramp,
+)
 from paper_comparison.vehicle import GEOMETRY
 
 
@@ -40,6 +45,8 @@ class XingOptions:
     initial_speed: float = 12.0
     # "point": Eq. 12 static bounds on the reference point, shrunk by half width.
     road_bound: str = "contour"
+    accept_inaccurate_qp: bool = XING_ACCEPT_INACCURATE
+    freeze_corridor: bool = XING_FREEZE_CORRIDOR
 
 
 class _Rows:
@@ -179,13 +186,15 @@ class XingPlanner:
         relative = pf - state[4:6]
         return relative.min(axis=0), relative.max(axis=0)
 
-    def corridor(self, X, time):
+    def corridor(self, X, time, *, recompute=False):
         """Equations 12--15, with explicit keep-left / yield upstream decision.
 
         Rectangular obstacle subtraction is inflated by the frozen ego footprint.
         Blocked keep-left corridors use the yielding wall from Eq. 14b; no hidden
         policy rescue or alternative homotopy search is performed.
         """
+        if not recompute and getattr(self, "_frozen_corridor", None) is not None:
+            return self._frozen_corridor
         bounds = []
         for j, x in enumerate(X):
             ego_lo, ego_hi = self._extents(x)
@@ -310,7 +319,9 @@ class XingPlanner:
             return float("inf"), float("inf"), float("inf")
         defects, connections = [], []
         maximum = float(np.max(np.abs(X[0] - initial)))
-        bounds = self.corridor(X, time)
+        # Safety validation must recompute the corridor at the candidate
+        # trajectory, independently of the QP's frozen approximation.
+        bounds = self.corridor(X, time, recompute=True)
         for j, x in enumerate(X):
             connections.append(np.max(np.abs(x[4:] - self.project(x[:4], x[4]))))
             slo, shi, dlo, dhi = bounds[j]
@@ -364,8 +375,12 @@ class XingPlanner:
                     s = initial[0] * j * self.dt
                     self.X[j, 1:4] = np.asarray(self.road.numeric_pose([s, n, 0.0])).ravel()
         self.X[0] = initial
+        self._frozen_corridor = None
+        if self.options.freeze_corridor:
+            self._frozen_corridor = self.corridor(self.X, time)
         qp_ms, history, status = 0.0, [], 2
         qp_status = "not_run"
+        usable = ("solved", "solved inaccurate") if self.options.accept_inaccurate_qp else ("solved",)
         for iteration in range(self.options.max_iterations):
             rows, q = self._qp(initial, time)
             solver = osqp.OSQP()
@@ -386,7 +401,7 @@ class XingPlanner:
             result = solver.solve(raise_error=False)
             qp_ms += result.info.run_time * 1000
             qp_status = result.info.status
-            if result.info.status_val != 1:
+            if qp_status not in usable:
                 history.append({"iteration": iteration + 1, "qp_status": qp_status})
                 status = 4
                 break

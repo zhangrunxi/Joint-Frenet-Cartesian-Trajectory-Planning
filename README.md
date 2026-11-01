@@ -30,9 +30,9 @@ The claims this code is meant to support are deliberately narrow:
 
 It does **not** establish that the proposed method is universally better than
 joint-frame planners. On wide roads every method does well; the comparisons
-that separate them are the narrow-road tasks in `results/archived/narrow/`,
-and even there a reconstructed Xing corridor passes one curved gap that the
-proposed geometry does not.
+that separate them are the narrow-gap, overtaking and curb tasks in
+`results/current/`, and on the curb task a static inflated full-body road
+bound is as safe as the proposed contour.
 
 ## Layout
 
@@ -48,10 +48,13 @@ vendor/               third-party dependencies (git submodules)
 
 ## Reviewer quick start
 
-For the shortest reproducible path to the frozen bus/SUV comparison, curb
-sensitivity, harmonized sensitivity, tests and provenance checks, see
-[`docs/REVIEWER_QUICKSTART.md`](docs/REVIEWER_QUICKSTART.md). The full
-protocols and audit reports remain linked below.
+For the current bus/SUV comparison (settings of 2026-11-01), its result
+tables and the commands that regenerate them, see
+[`docs/REVIEWER_QUICKSTART.md`](docs/REVIEWER_QUICKSTART.md).
+`results/current/` holds the per-case records behind those tables;
+`results/archived/` and the reports under `docs/` (`ACCEPTANCE_REPORT`,
+`AUDIT_FINDINGS`, `FINAL_COMPARISON_REPORT`) describe earlier runs and are kept
+as the audit trail only.
 
 ## Setup
 
@@ -119,6 +122,10 @@ clearance at the saved states. It does not re-time the solvers.
 
 | Claim in the manuscript or the response | Script that produces it | Archived output |
 | --- | --- | --- |
+| **Current** narrow-gap, overtaking and curb comparison, bus and SUV | `scripts/run_random_benchmark.py --task gap2\|overtake2\|curb`; tables by `scripts/summarize_current_results.py` | `results/current/v2/`, `results/current/rerun_fixed/` |
+| **Current** ablation, six- vs nine-state timing | `scripts/run_random_benchmark.py`, `scripts/run_dimension_scaling.py` | `results/current/v2/ablation_*`, `serial9_*`, `dimension_scaling` |
+| Per-pose contour error against `N_DISC` | `scripts/run_per_pose_contour_accuracy.py` | `results/current/v2/contour_per_pose_corrected/` |
+| Variable-curvature static geometry audit | `scripts/run_variable_curvature_geometry.py` | `results/current/variable_curvature_geometry_final/` |
 | Fig. 7 redundancy of the three-circle, five-circle and proposed models | `scripts/measure_geometry_redundancy.py` | `results/archived/geometry_conservatism/geometry_redundancy.csv` |
 | Conservative-geometry audit (ellipse / three circles / proposed) | `scripts/measure_geometry_conservatism.py` | `results/archived/geometry_conservatism/summary.csv` |
 | Six- versus nine-state overhead | `scripts/run_dimension_scaling.py` | `results/archived/dimension_scaling/summary.csv` |
@@ -201,11 +208,14 @@ These are stated in full in `docs/AUDIT_FINDINGS.md` and
 - The proposed hybrid geometry is more conservative than the exact rectangle:
   its minimum passable gap is 3.18 m against 2.70 m for the bus.
 - The node-0 nonlinear constraints of the proposed model were unset in the
-  earlier runs, so the solver did not constrain the control it executed while
-  the acceptance check applied the full constraint set. This defect is
-  repaired; Section 4 of `docs/NARROW_BENCHMARK_PROTOCOL.md` gives the
-  numbers before and after, and the harmonized settings it introduces apply
-  to every method.
+  earlier runs; the Reiter contour did not receive the selected `N_DISC`; and
+  the frozen Xing corridor could hide a penetration because residuals were
+  not recomputed. All three are repaired, and only `results/current/` was
+  produced after the repairs. Sections 4-5 of
+  `docs/NARROW_BENCHMARK_PROTOCOL.md` record the changes.
+- Variable curvature is covered by a static geometry audit only (18 of 2,980
+  feasible poses are false-safe for the proposed contour); the closed-loop
+  interface is smoke-tested only.
 - The CiLQR implementation accepts on feasibility; it does not certify
   stationarity.
 - Clearance is sampled at 0.02 s. This is not a continuous-time safety proof.

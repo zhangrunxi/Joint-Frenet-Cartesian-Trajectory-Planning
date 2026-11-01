@@ -36,3 +36,7 @@ results/**/*.json
 
 # copyrighted papers are not redistributed
 sources/*.pdf
+
+# Current results (2026-11-01 settings) were copied in already reduced to case
+# lists, per-case records, protocols and summaries; keep all of their JSON.
+!results/current/**/*.json

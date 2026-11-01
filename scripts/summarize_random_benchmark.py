@@ -75,6 +75,8 @@ def infeasible(row):
     speed already exceeds the bus limit, so every planner must abort. The
     criterion depends only on the scene, not on the method.
     """
+    if row.get("initial_state_valid") is False:
+        return True
     speed = row.get("initial_speed")
     kappa = row.get("curvature")
     if speed is None or kappa is None:

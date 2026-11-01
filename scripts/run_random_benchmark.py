@@ -26,8 +26,15 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import numpy as np
 
+from paper_comparison.evaluation import initial_state_diagnostics
 from paper_comparison.model import Settings
-from paper_comparison.harness_options import ACCEPT_MAXITER, INITIAL_GUESS, N_DISC
+from paper_comparison.harness_options import (
+    ACCEPT_MAXITER,
+    INITIAL_GUESS,
+    N_DISC,
+    XING_ACCEPT_INACCURATE,
+    XING_FREEZE_CORRIDOR,
+)
 from paper_comparison.vehicle import GEOMETRY
 from run_paper_comparison import run_case
 from run_final_comparison import run_xing
@@ -181,6 +188,16 @@ GAP_PROTOCOL = {
     "steps": 120,
 }
 
+# Version 2 of the gap task (protocol section 5): 0.1 m steps through the
+# range where the minimum passable gaps of the geometries lie (exact
+# rectangle 2.70 / hybrid 3.18 / circles 3.65 m for the bus, 2.30 / 2.69 /
+# 3.09 m for the SUV), plus the wide gaps the ellipse needs.
+GAP2_GAPS = {
+    "bus": [round(2.7 + 0.1 * i, 1) for i in range(16)] + [4.5, 5.0, 5.5, 6.0],
+    "suv": [round(2.3 + 0.1 * i, 1) for i in range(14)] + [4.0, 4.4, 4.8],
+}
+GAP2_PROTOCOL = {**GAP_PROTOCOL, "task": "gap2", "gap_m": GAP2_GAPS[GEOMETRY.name]}
+
 GAP_METHODS = [
     "paper6_hybrid_sqp",
     "paper6_capsule_sqp",
@@ -220,6 +237,7 @@ CURB_METHODS = [
     "paper6_frozen_sqp",
     "reiter_direct_ellipse",
     "reiter_direct_ellipse_point",
+    "reiter_direct_ellipse_inflated",
     "xing_joint_corridor",
     "xing_joint_corridor_point",
 ]
@@ -284,6 +302,62 @@ def build_curb_cases(protocol):
     return cases
 
 
+# Version 2 of the overtaking task (protocol section 5.4): a two-lane narrow
+# road, the slow vehicle in the centre of the right lane, the target in the
+# centre of the left lane. The widest lateral separation the road allows is
+# 1.5 * half_width - (body half width + road margin), so the half widths
+# straddle the same-s separation each obstacle geometry needs. Only cases that
+# can be completed at the cruise speed within the run are kept.
+OVERTAKE2_PROTOCOLS = {
+    "bus": {
+        "half_width_m": [3.0, 3.25, 3.5, 4.0],
+        "speed_pairs_mps": [[11.0, 5.0], [14.0, 8.0]],
+    },
+    "suv": {
+        "half_width_m": [2.5, 2.75, 3.0, 3.5],
+        "speed_pairs_mps": [[11.0, 5.0], [14.0, 8.0]],
+    },
+}
+OVERTAKE2_PROTOCOL = {
+    "task": "overtake2",
+    "vehicle": GEOMETRY.name,
+    **OVERTAKE2_PROTOCOLS[GEOMETRY.name],
+    "kappa_per_m": [0.0, 1 / 60, 1 / 35, -1 / 40],
+    "obstacle_start_m": [20.0, 30.0],
+    "steps": 120,
+    "dt_s": 0.1,
+    # The ego front must end one body length ahead of the obstacle front.
+    "pass_distance_margin_m": 2.0,
+}
+
+
+def build_overtake2_cases(protocol):
+    cases = []
+    horizon = protocol["steps"] * protocol["dt_s"]
+    for half_width in protocol["half_width_m"]:
+        for kappa in protocol["kappa_per_m"]:
+            for speed, obstacle_speed in protocol["speed_pairs_mps"]:
+                if not lateral_feasible(speed, kappa):
+                    continue
+                for start in protocol["obstacle_start_m"]:
+                    needed = start + GEOMETRY.length + protocol["pass_distance_margin_m"]
+                    if (speed - obstacle_speed) * horizon < needed:
+                        continue
+                    cases.append(
+                        {
+                            "case_id": len(cases),
+                            "half_width": half_width,
+                            "lateral": half_width / 2,
+                            "kappa": kappa,
+                            "obstacle_start": start,
+                            "obstacle_speed": obstacle_speed,
+                            "obstacle_lateral": -half_width / 2,
+                            "initial_speed": speed,
+                        }
+                    )
+    return cases
+
+
 def run_method(output, method, case, steps, intervals, xing_iterations=50):
     settings = replace(
         Settings(),
@@ -331,7 +405,7 @@ def main():
     parser.add_argument("--methods", nargs="+", default=None)
     parser.add_argument(
         "--task",
-        choices=["general", "overtake", "gap", "curb"],
+        choices=["general", "overtake", "overtake2", "gap", "gap2", "curb"],
         default=RANDOM_PROTOCOL["task"],
     )
     parser.add_argument("--case-start", type=int, default=0)
@@ -340,8 +414,14 @@ def main():
     parser.add_argument("--case-stop", type=int, default=None)
     args = parser.parse_args()
 
-    if args.task == "gap":
-        protocol, cases, methods = dict(GAP_PROTOCOL), None, GAP_METHODS
+    if args.task == "overtake2":
+        protocol, methods = dict(OVERTAKE2_PROTOCOL), GAP_METHODS
+        protocol["steps"] = args.steps
+        protocol["dt_s"] = Settings().dt
+        cases = build_overtake2_cases(protocol)
+    elif args.task in ("gap", "gap2"):
+        protocol = dict(GAP_PROTOCOL if args.task == "gap" else GAP2_PROTOCOL)
+        methods = GAP_METHODS
         cases = build_gap_cases(protocol)
     elif args.task == "curb":
         protocol, methods = dict(CURB_PROTOCOL), CURB_METHODS
@@ -357,7 +437,11 @@ def main():
     protocol["initial_guess"] = INITIAL_GUESS
     protocol["n_disc"] = N_DISC
     protocol["accept_maxiter"] = ACCEPT_MAXITER
+    protocol["xing_accept_inaccurate_qp"] = XING_ACCEPT_INACCURATE
+    protocol["xing_freeze_corridor"] = XING_FREEZE_CORRIDOR
     protocol["stage0_nonlinear_constraints"] = True
+    protocol["initial_state_validation"] = "exact common body margins; invalid cases retained and scored separately"
+    cases = [{**case, **initial_state_diagnostics(case)} for case in cases]
     args.methods = args.methods or methods
     if args.output.exists() and any(args.output.iterdir()):
         raise FileExistsError("Use an empty new output directory")
@@ -402,6 +486,8 @@ def main():
                     "error": f"{type(exc).__name__}: {exc}",
                     "wall_seconds": perf_counter() - started,
                 }
+            row.update({key: value for key, value in case.items()
+                        if key.startswith("initial_")})
             rows.append(row)
             (args.output / "partial_results.jsonl").write_text(
                 "\n".join(json.dumps(r, default=str) for r in rows) + "\n"

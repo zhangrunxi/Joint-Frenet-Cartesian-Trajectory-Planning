@@ -1,0 +1,482 @@
+[
+  {
+    "case_id": 0,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.0,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 1,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.0,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 2,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.0,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 3,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.0,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 4,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 5,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 6,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 7,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 8,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.02857142857142857,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 9,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": 0.02857142857142857,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 10,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": -0.025,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 11,
+    "half_width": 3.0,
+    "lateral": 1.5,
+    "kappa": -0.025,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.5,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 12,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.0,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 13,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.0,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 14,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.0,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 15,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.0,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 16,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 17,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 18,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 19,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 20,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.02857142857142857,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 21,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": 0.02857142857142857,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 22,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": -0.025,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 23,
+    "half_width": 3.25,
+    "lateral": 1.625,
+    "kappa": -0.025,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.625,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 24,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.0,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 25,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.0,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 26,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.0,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 27,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.0,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 28,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 29,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 30,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 31,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 32,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.02857142857142857,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 33,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": 0.02857142857142857,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 34,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": -0.025,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 35,
+    "half_width": 3.5,
+    "lateral": 1.75,
+    "kappa": -0.025,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -1.75,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 36,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.0,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 37,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.0,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 38,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.0,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 39,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.0,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 40,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 41,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 42,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 43,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.016666666666666666,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 8.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 14.0
+  },
+  {
+    "case_id": 44,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.02857142857142857,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 45,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": 0.02857142857142857,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 46,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": -0.025,
+    "obstacle_start": 20.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 11.0
+  },
+  {
+    "case_id": 47,
+    "half_width": 4.0,
+    "lateral": 2.0,
+    "kappa": -0.025,
+    "obstacle_start": 30.0,
+    "obstacle_speed": 5.0,
+    "obstacle_lateral": -2.0,
+    "initial_speed": 11.0
+  }
+]

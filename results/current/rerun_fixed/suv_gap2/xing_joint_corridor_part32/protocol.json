@@ -1,0 +1,44 @@
+{
+  "task": "gap2",
+  "vehicle": "suv",
+  "gap_m": [
+    2.3,
+    2.4,
+    2.5,
+    2.6,
+    2.7,
+    2.8,
+    2.9,
+    3.0,
+    3.1,
+    3.2,
+    3.3,
+    3.4,
+    3.5,
+    3.6,
+    4.0,
+    4.4,
+    4.8
+  ],
+  "kappa_per_m": [
+    0.0,
+    0.03333333333333333,
+    0.05,
+    -0.04
+  ],
+  "initial_speed_mps": [
+    6.0,
+    9.0
+  ],
+  "curb_clearance_m": 0.3,
+  "obstacle_start_m": 30.0,
+  "steps": 120,
+  "xing_max_iterations": 50,
+  "initial_guess": "ramp",
+  "n_disc": 5,
+  "accept_maxiter": true,
+  "xing_accept_inaccurate_qp": true,
+  "xing_freeze_corridor": true,
+  "stage0_nonlinear_constraints": true,
+  "initial_state_validation": "exact common body margins; invalid cases retained and scored separately"
+}

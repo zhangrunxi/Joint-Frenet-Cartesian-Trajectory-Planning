@@ -167,3 +167,33 @@ def evaluate_sample(state, other_pose, kappa, half_width):
         "obstacle_clearance_m": polygon_clearance(ego, other),
         "road_clearance_m": road_clearance(ego, kappa, half_width),
     }
+
+
+def initial_state_diagnostics(case, geometry=GEOMETRY, road_margin=0.2,
+                              obstacle_margin=0.2, max_lat_acc=5.0):
+    """Method-independent validity of the shared [s,n,alpha]=[0,0,0] start.
+
+    Keep invalid cases for audit, but separate them from feasible-scene rates.
+    Geometry is explicit so archived SUV cases can be audited in a bus process.
+    """
+    kappa = case["kappa"]
+    ego = rectangle_vertices([0, 0, 0], geometry.length, geometry.width,
+                             geometry.rear_overhang)
+    other_pose = pose_from_state(
+        [case["obstacle_start"], case.get("obstacle_lateral", 0.0), 0], kappa)
+    other = rectangle_vertices(other_pose, geometry.length, geometry.width,
+                               geometry.rear_overhang)
+    road = road_clearance(ego, kappa, case["half_width"])
+    obstacle = polygon_clearance(ego, other)
+    alat = case["initial_speed"] ** 2 * abs(kappa)
+    checks = (("road_margin", road < road_margin - 1e-7),
+              ("obstacle_margin", obstacle < obstacle_margin - 1e-7),
+              ("lateral_acceleration", alat > max_lat_acc + 1e-7))
+    reasons = [reason for reason, invalid in checks if invalid]
+    return {
+        "initial_state_valid": not reasons,
+        "initial_state_invalid_reasons": reasons,
+        "initial_road_clearance_m": road,
+        "initial_obstacle_clearance_m": obstacle,
+        "initial_lateral_acceleration_mps2": alat,
+    }

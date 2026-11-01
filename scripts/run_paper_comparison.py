@@ -73,10 +73,20 @@ class BusReiter(VehiclePlannerAcados20222):
                 ]
             )
         # Existing builder assigns >=0 to all entries after the first two.
-        if self.road_bound == "point":
+        if self.road_bound in ("point", "inflated"):
             offsets, width = self.x[1], self.road.half_width - 0.2 - GEOMETRY.half_width
+            if self.road_bound == "inflated" and abs(self.road.kappa) > 1e-12:
+                # Static curvature-aware inflation of the outer bound: the
+                # outward swing of the outer front corner of a body tangent
+                # to the arc of the rear axle, the usual engineering fix of
+                # the reference-point bound.
+                radius = 1 / abs(self.road.kappa) + GEOMETRY.half_width
+                swing = np.hypot(radius, GEOMETRY.front_extent) - radius
+                outer = -np.sign(self.road.kappa)
+                offsets = offsets + outer * swing / 2
+                width = width - swing / 2
         else:
-            offsets = approximate_road_offsets(self.x, self.road)
+            offsets = approximate_road_offsets(self.x, self.road, segments=N_DISC)
             width = self.road.half_width - 0.2
         self.obstacle_expr = ca.vertcat(obs, offsets + width, width - offsets)
         self.h = ca.vertcat(
@@ -89,6 +99,10 @@ class BusReiter(VehiclePlannerAcados20222):
 
 class BusReiterPoint(BusReiter):
     road_bound = "point"
+
+
+class BusReiterInflated(BusReiter):
+    road_bound = "inflated"
 
 
 METHODS = [
@@ -167,7 +181,13 @@ def run_case(
             obstacle_margin=0.2,
             build_directory=str(output / "build" / name),
         )
-        cls = BusReiterPoint if method.endswith("_point") else BusReiter
+        cls = (
+            BusReiterPoint
+            if method.endswith("_point")
+            else BusReiterInflated
+            if method.endswith("_inflated")
+            else BusReiter
+        )
         planner = cls(bus, road, options, [bus])
         state = np.array(
             [0, 0, 0, initial_speed, np.arctan(GEOMETRY.wheelbase * road.kappa)]
